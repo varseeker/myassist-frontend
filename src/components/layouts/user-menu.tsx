@@ -1,0 +1,51 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { LoadingButton } from '@/components/shared/loading-button';
+import { Badge } from '@/components/ui/badge';
+import { useAuthStore } from '@/features/auth/store';
+
+export function UserMenu() {
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      router.push('/login');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Logout failed');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="hidden text-right sm:block">
+        <p className="text-sm font-medium">{user.fullName}</p>
+        <p className="text-xs text-muted-foreground">{user.email}</p>
+      </div>
+      <Badge variant="outline">{user.role}</Badge>
+      <LoadingButton
+        variant="outline"
+        size="sm"
+        loading={isLoggingOut}
+        loadingText="Logging out..."
+        onClick={() => void handleLogout()}
+      >
+        Logout
+      </LoadingButton>
+    </div>
+  );
+}
