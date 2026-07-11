@@ -83,3 +83,4 @@ Database & file storage tetap di **Supabase**.
 | API 502 | Backend Render mungkin sleep (Free tier) — tunggu ~30 detik |
 | WebSocket tidak connect | Cek `NEXT_PUBLIC_WS_URL` = URL backend |
 | Upload gagal | Pastikan Supabase storage key & bucket di backend |
+| `npm ci` lock file sync error | `vercel.json` pakai `npm install`; atau update Install Command di Vercel Settings |
