@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { MessageCircle, QrCode, RefreshCw } from 'lucide-react';
+import { MessageCircle, QrCode, RefreshCw, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { LoadingState } from '@/components/shared/loading-state';
@@ -18,7 +18,18 @@ import {
   connectWhatsAppRequest,
   disconnectWhatsAppRequest,
   getMessagingStatusRequest,
+  sendMessagingTestRequest,
+  type WhatsAppSessionStatus,
 } from '@/features/messaging/api';
+
+const STATUS_LABEL: Record<WhatsAppSessionStatus['status'], string> = {
+  connected: 'Terhubung',
+  connecting: 'Menghubungkan…',
+  qr: 'Menunggu scan QR',
+  logged_out: 'Sesi logout',
+  disconnected: 'Terputus',
+  disabled: 'Nonaktif',
+};
 
 export function MessagingPageContent() {
   const queryClient = useQueryClient();
@@ -28,43 +39,102 @@ export function MessagingPageContent() {
     queryFn: getMessagingStatusRequest,
     refetchInterval: (query) => {
       const status = query.state.data?.whatsapp.status;
-      return status === 'qr' || status === 'connecting' ? 3000 : 15000;
+      return status === 'qr' || status === 'connecting' || status === 'logged_out'
+        ? 3000
+        : 15000;
     },
   });
 
   const connectMutation = useMutation({
-    mutationFn: connectWhatsAppRequest,
-    onSuccess: () => {
-      toast.success('WhatsApp connect started');
+    mutationFn: (resetSession: boolean) => connectWhatsAppRequest(resetSession),
+    onSuccess: (data) => {
+      if (data.status === 'qr') {
+        toast.success('QR siap discan. Buka WhatsApp di HP lalu tautkan perangkat.');
+      } else if (data.status === 'connected') {
+        toast.success(`WhatsApp terhubung${data.phoneNumber ? ` (+${data.phoneNumber})` : ''}`);
+      } else if (data.status === 'connecting') {
+        toast.message('Sedang menghubungkan WhatsApp…');
+      } else {
+        toast.message(data.hint ?? data.lastError ?? 'Status WhatsApp diperbarui');
+      }
       void queryClient.invalidateQueries({ queryKey: ['messaging-status'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) =>
+      toast.error(error.message || 'Gagal menghubungkan WhatsApp'),
   });
 
   const disconnectMutation = useMutation({
     mutationFn: (logout: boolean) => disconnectWhatsAppRequest(logout),
-    onSuccess: () => {
-      toast.success('WhatsApp disconnected');
+    onSuccess: (_data, logout) => {
+      toast.success(
+        logout
+          ? 'Sesi WhatsApp di-logout. Scan QR ulang untuk menghubungkan.'
+          : 'WhatsApp diputus sementara. Klik Hubungkan untuk menyambung ulang.',
+      );
       void queryClient.invalidateQueries({ queryKey: ['messaging-status'] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) =>
+      toast.error(error.message || 'Gagal memutus WhatsApp'),
+  });
+
+  const testMutation = useMutation({
+    mutationFn: sendMessagingTestRequest,
+    onSuccess: (result) => {
+      const wa = result.whatsapp?.status ?? 'SKIPPED';
+      const tg = result.telegram?.status ?? 'SKIPPED';
+      if (wa === 'SENT' || tg === 'SENT') {
+        toast.success(`Tes terkirim — WhatsApp: ${wa}, Telegram: ${tg}`);
+      } else {
+        toast.error(
+          [
+            result.whatsapp?.error,
+            result.telegram?.error,
+            'Tidak ada channel yang berhasil mengirim.',
+          ]
+            .filter(Boolean)
+            .join(' | '),
+        );
+      }
+      void queryClient.invalidateQueries({ queryKey: ['messaging-status'] });
+    },
+    onError: (error: Error) =>
+      toast.error(error.message || 'Gagal mengirim tes notifikasi'),
   });
 
   const whatsapp = statusQuery.data?.whatsapp;
   const telegram = statusQuery.data?.telegram;
+  const needsReset =
+    whatsapp?.status === 'logged_out' ||
+    Boolean(whatsapp?.lastError?.toLowerCase().includes('logout'));
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Messaging</h1>
-        <p className="text-sm text-muted-foreground">
-          Connect WhatsApp (Baileys) and Telegram bot for ticket notifications.
-          Meta Cloud API can be enabled later via env without rewriting the app.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Messaging</h1>
+          <p className="text-sm text-muted-foreground">
+            Notifikasi tiket dikirim lewat <strong>WhatsApp dan Telegram</strong> secara
+            paralel. Keep-alive Baileys aktif agar koneksi lebih stabil.
+          </p>
+        </div>
+        <LoadingButton
+          variant="outline"
+          loading={testMutation.isPending}
+          loadingText="Mengirim tes..."
+          onClick={() => testMutation.mutate()}
+        >
+          <Send className="size-3.5" />
+          Kirim tes ke akun saya
+        </LoadingButton>
       </div>
 
       {statusQuery.isLoading ? (
-        <LoadingState message="Loading messaging status..." />
+        <LoadingState message="Memuat status messaging..." />
+      ) : statusQuery.isError ? (
+        <p className="text-sm text-destructive">
+          {(statusQuery.error as Error).message ||
+            'Gagal memuat status messaging. Pastikan backend berjalan dan Anda login sebagai admin.'}
+        </p>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -74,7 +144,7 @@ export function MessagingPageContent() {
                 WhatsApp (Baileys)
               </CardTitle>
               <CardDescription>
-                Scan QR with the admin WhatsApp number. Driver:{' '}
+                Scan QR memakai nomor WhatsApp pengirim notifikasi. Driver:{' '}
                 {whatsapp?.driver ?? 'baileys'}
               </CardDescription>
             </CardHeader>
@@ -85,14 +155,22 @@ export function MessagingPageContent() {
                     whatsapp?.status === 'connected' ? 'default' : 'outline'
                   }
                 >
-                  {whatsapp?.status ?? 'unknown'}
+                  {whatsapp
+                    ? STATUS_LABEL[whatsapp.status]
+                    : 'Tidak diketahui'}
                 </Badge>
                 {whatsapp?.phoneNumber ? (
                   <span className="text-sm text-muted-foreground">
-                    Linked: +{whatsapp.phoneNumber}
+                    Nomor terhubung: +{whatsapp.phoneNumber}
                   </span>
                 ) : null}
               </div>
+
+              {whatsapp?.hint ? (
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                  {whatsapp.hint}
+                </p>
+              ) : null}
 
               {whatsapp?.qrDataUrl ? (
                 <div className="flex flex-col items-center gap-3 rounded-lg border p-4">
@@ -102,31 +180,54 @@ export function MessagingPageContent() {
                     alt="WhatsApp QR code"
                     className="size-56 rounded-md bg-white p-2"
                   />
-                  <p className="text-center text-sm text-muted-foreground">
-                    Open WhatsApp → Linked Devices → Link a Device
-                  </p>
+                  <div className="space-y-1 text-center text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">Cara scan</p>
+                    <p>WhatsApp → Setelan → Perangkat tertaut → Tautkan perangkat</p>
+                    <p>QR kadaluarsa ~40 detik. Jika habis, klik hubungkan lagi.</p>
+                  </div>
                 </div>
               ) : null}
 
               {whatsapp?.lastError ? (
-                <p className="text-sm text-destructive">{whatsapp.lastError}</p>
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+                  <p className="font-medium">Detail masalah</p>
+                  <p>{whatsapp.lastError}</p>
+                </div>
+              ) : null}
+
+              {needsReset ? (
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  Sesi lama sudah tidak valid. Gunakan tombol{' '}
+                  <strong>Reset session & tampilkan QR</strong>, lalu scan ulang.
+                </p>
               ) : null}
 
               <div className="flex flex-wrap gap-2">
                 <LoadingButton
                   loading={connectMutation.isPending}
-                  loadingText="Connecting..."
-                  onClick={() => connectMutation.mutate()}
+                  loadingText="Menghubungkan..."
+                  onClick={() => connectMutation.mutate(needsReset)}
                 >
                   <RefreshCw className="size-3.5" />
-                  Connect / Refresh QR
+                  {needsReset
+                    ? 'Reset session & tampilkan QR'
+                    : 'Hubungkan / Tampilkan QR'}
                 </LoadingButton>
+                {!needsReset ? (
+                  <Button
+                    variant="outline"
+                    disabled={connectMutation.isPending}
+                    onClick={() => connectMutation.mutate(true)}
+                  >
+                    Reset session & tampilkan QR
+                  </Button>
+                ) : null}
                 <Button
                   variant="outline"
                   disabled={disconnectMutation.isPending}
                   onClick={() => disconnectMutation.mutate(false)}
                 >
-                  Disconnect
+                  Putuskan sementara
                 </Button>
                 <Button
                   variant="outline"
@@ -134,14 +235,14 @@ export function MessagingPageContent() {
                   onClick={() => {
                     if (
                       window.confirm(
-                        'Logout WhatsApp session? You will need to scan QR again.',
+                        'Logout sesi WhatsApp? File kredensial akan dihapus dan Anda harus scan QR lagi.',
                       )
                     ) {
                       disconnectMutation.mutate(true);
                     }
                   }}
                 >
-                  Logout session
+                  Logout sesi
                 </Button>
               </div>
             </CardContent>
@@ -154,42 +255,69 @@ export function MessagingPageContent() {
                 Telegram Bot
               </CardTitle>
               <CardDescription>
-                Users link their chat via deep link token from the Users page.
+                Channel kedua untuk notifikasi tiket (selalu dikirim bersama WhatsApp
+                jika user sudah tertaut).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={telegram?.enabled ? 'default' : 'outline'}>
-                  {telegram?.enabled ? 'Enabled' : 'Disabled'}
+                  {telegram?.enabled ? 'Aktif' : 'Nonaktif'}
                 </Badge>
                 {telegram?.botUsername ? (
                   <span className="text-muted-foreground">
                     @{telegram.botUsername}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="text-muted-foreground">
+                    Username bot belum di-set
+                  </span>
+                )}
+                <Badge variant="outline">
+                  Mode: {telegram?.ingressMode ?? 'disabled'}
+                </Badge>
+                <Badge variant="outline">
+                  Tertaut: {telegram?.linkedUsers ?? 0} user
+                </Badge>
               </div>
+
+              {telegram?.hint ? (
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-muted-foreground">
+                  {telegram.hint}
+                </p>
+              ) : null}
+
+              {!telegram?.enabled ? (
+                <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive">
+                  Bot belum aktif. Isi <code>TELEGRAM_BOT_TOKEN</code> dan{' '}
+                  <code>TELEGRAM_BOT_USERNAME</code> di backend, lalu restart.
+                </p>
+              ) : null}
 
               <ol className="list-decimal space-y-2 pl-4 text-muted-foreground">
                 <li>
-                  Set <code>TELEGRAM_BOT_TOKEN</code> and{' '}
-                  <code>TELEGRAM_BOT_USERNAME</code> on the backend.
+                  Pastikan token bot & username sudah di environment backend.
                 </li>
                 <li>
-                  Point webhook to{' '}
-                  <code>/api/v1/messaging/telegram/webhook</code>.
+                  Local/dev memakai <code>polling</code> otomatis. Production set
+                  webhook ke <code>/api/v1/messaging/telegram/webhook</code>.
                 </li>
                 <li>
-                  Open a user in Users → copy Telegram link → user opens it and
-                  taps Start.
+                  Users → Edit user → salin Telegram link → user buka & tekan
+                  Start.
                 </li>
                 <li>
-                  Add each user&apos;s WhatsApp phone number on the Users form.
+                  Isi nomor WhatsApp user agar kedua channel ikut terkirim.
+                </li>
+                <li>
+                  Pakai tombol <strong>Kirim tes ke akun saya</strong> untuk
+                  memverifikasi WhatsApp + Telegram sekaligus.
                 </li>
               </ol>
 
               {telegram?.deepLinkPrefix ? (
                 <p className="rounded-md border bg-muted/40 px-3 py-2 text-xs">
-                  Deep link prefix: {telegram.deepLinkPrefix}
+                  Prefix deep link: {telegram.deepLinkPrefix}
                   {'{token}'}
                 </p>
               ) : null}
