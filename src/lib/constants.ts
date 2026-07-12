@@ -13,6 +13,7 @@ export const TICKET_STATUSES = [
   'ASSIGNED',
   'IN_PROGRESS',
   'WAITING_INFORMATION',
+  'DONE',
   'RESOLVED',
   'REOPENED',
   'CLOSED',

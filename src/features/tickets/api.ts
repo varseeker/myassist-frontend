@@ -47,7 +47,8 @@ export interface UpdateTicketPayload {
 export interface UpdateTicketStatusPayload {
   status: TicketStatus;
   assignedToId?: string;
-  note?: string;
+  mentionUserId?: string;
+  note: string;
 }
 
 export interface Assignee {
@@ -139,6 +140,14 @@ export async function getAssigneesRequest(projectId?: string) {
   const { data } = await apiClient.get<ApiResponse<Assignee[]>>(
     '/tickets/assignees',
     { params: projectId ? { projectId } : undefined },
+  );
+  return data.data;
+}
+
+export async function getProjectMembersRequest(projectId: string) {
+  const { data } = await apiClient.get<ApiResponse<Assignee[]>>(
+    '/tickets/project-members',
+    { params: { projectId } },
   );
   return data.data;
 }

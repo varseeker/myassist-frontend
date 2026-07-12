@@ -117,12 +117,14 @@ export interface Ticket {
   sprintId?: string | null;
   createdById: string;
   assignedToId?: string | null;
+  verificationUserId?: string | null;
   resolvedAt?: string | null;
   closedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   createdBy?: TicketUserSummary;
   assignedTo?: TicketUserSummary | null;
+  verificationUser?: TicketUserSummary | null;
   project?: TicketProjectSummary;
   sprint?: TicketSprintSummary | null;
   availableTransitions?: TicketStatus[];

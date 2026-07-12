@@ -27,6 +27,10 @@ const statusConfig: Record<
     label: 'Waiting Info',
     className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
   },
+  DONE: {
+    label: 'Done',
+    className: 'bg-teal-500/10 text-teal-700 dark:text-teal-400',
+  },
   RESOLVED: {
     label: 'Resolved',
     className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
