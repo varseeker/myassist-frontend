@@ -75,6 +75,7 @@ export function UsersPageContent() {
     }) =>
       updateUserRequest(id, {
         ...payload,
+        email: payload.email === '' ? null : payload.email,
         password: payload.password || undefined,
       }),
     onSuccess: () => {
@@ -102,7 +103,8 @@ export function UsersPageContent() {
           <div>
             <p className="font-medium">{row.original.fullName}</p>
             <p className="text-xs text-muted-foreground">
-              @{row.original.username} · {row.original.email}
+              @{row.original.username}
+              {row.original.email ? ` · ${row.original.email}` : ''}
             </p>
           </div>
         ),

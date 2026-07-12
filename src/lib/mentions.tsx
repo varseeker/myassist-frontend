@@ -8,7 +8,11 @@ export function renderCommentContent(
   content: string,
   mentions: TicketUserSummary[],
 ): ReactNode[] {
-  const mentionEmails = new Set(mentions.map((user) => user.email.toLowerCase()));
+  const mentionEmails = new Set(
+    mentions
+      .map((user) => user.email?.toLowerCase())
+      .filter((email): email is string => Boolean(email)),
+  );
   const parts: ReactNode[] = [];
   let lastIndex = 0;
 

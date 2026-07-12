@@ -13,6 +13,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { TicketFormDialog } from '@/features/tickets/components/ticket-form-dialog';
+import { TicketExportPanel } from '@/features/tickets/components/ticket-export-panel';
 import { useAuthStore } from '@/features/auth/store';
 import {
   createTicketRequest,
@@ -192,6 +193,8 @@ export function TicketsPageContent() {
             New Ticket
           </Button>
         </div>
+
+        <TicketExportPanel />
 
         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap">
           <Input

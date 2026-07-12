@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2, Download, FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { LoadingButton } from '@/components/shared/loading-button';
@@ -23,6 +23,7 @@ import {
   getProjectSprintsRequest,
   updateSprintRequest,
 } from '@/features/projects/api';
+import { exportTicketsBySprintRequest } from '@/features/tickets/api';
 import {
   dateInputToIso,
   SprintTimeline,
@@ -127,6 +128,24 @@ export function ProjectSprintsPanel({ project }: ProjectSprintsPanelProps) {
     onSuccess: () => {
       toast.success('Sprint deleted');
       invalidateSprints();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const exportMutation = useMutation({
+    mutationFn: ({
+      sprintId,
+      format,
+    }: {
+      sprintId: string;
+      format: 'csv' | 'xlsx';
+    }) => exportTicketsBySprintRequest(sprintId, format),
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables.format === 'xlsx'
+          ? 'Export Excel berhasil diunduh'
+          : 'Export CSV berhasil diunduh',
+      );
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -284,6 +303,34 @@ export function ProjectSprintsPanel({ project }: ProjectSprintsPanelProps) {
                           >
                             <Pencil className="size-3.5" />
                             Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={exportMutation.isPending}
+                            onClick={() =>
+                              exportMutation.mutate({
+                                sprintId: sprint.id,
+                                format: 'csv',
+                              })
+                            }
+                          >
+                            <Download className="size-3.5" />
+                            CSV
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={exportMutation.isPending}
+                            onClick={() =>
+                              exportMutation.mutate({
+                                sprintId: sprint.id,
+                                format: 'xlsx',
+                              })
+                            }
+                          >
+                            <FileSpreadsheet className="size-3.5" />
+                            Excel
                           </Button>
                           <Button
                             variant="outline"

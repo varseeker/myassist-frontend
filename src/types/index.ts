@@ -35,7 +35,7 @@ export interface PaginatedResponse<T> {
 export interface User {
   id: string;
   username: string;
-  email: string;
+  email?: string | null;
   fullName: string;
   avatarUrl?: string | null;
   phoneNumber?: string | null;
@@ -91,7 +91,7 @@ export interface Role {
 export interface TicketUserSummary {
   id: string;
   fullName: string;
-  email: string;
+  email: string | null;
   role: UserRole;
 }
 
@@ -158,7 +158,7 @@ export interface TicketComment {
 export interface MentionableUser {
   id: string;
   fullName: string;
-  email: string;
+  email: string | null;
 }
 
 export interface TicketAttachment {

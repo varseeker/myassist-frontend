@@ -109,7 +109,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
 
   const insertMention = (mentionUser: MentionableUser) => {
     const textarea = textareaRef.current;
-    if (!textarea) {
+    if (!textarea || !mentionUser.email) {
       return;
     }
 
@@ -183,9 +183,11 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
             />
 
             {mentionQuery !== null &&
-            (mentionableQuery.data?.length ?? 0) > 0 ? (
+            (mentionableQuery.data?.filter((u) => u.email).length ?? 0) > 0 ? (
               <div className="absolute z-10 mt-1 w-full rounded-lg border bg-popover p-1 shadow-md">
-                {mentionableQuery.data?.map((mentionUser) => (
+                {mentionableQuery.data
+                  ?.filter((mentionUser) => mentionUser.email)
+                  .map((mentionUser) => (
                   <button
                     key={mentionUser.id}
                     type="button"

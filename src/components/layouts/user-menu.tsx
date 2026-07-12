@@ -34,7 +34,9 @@ export function UserMenu() {
     <div className="flex items-center gap-3">
       <div className="hidden text-right sm:block">
         <p className="text-sm font-medium">{user.fullName}</p>
-        <p className="text-xs text-muted-foreground">{user.email}</p>
+        <p className="text-xs text-muted-foreground">
+          {user.email ?? user.username}
+        </p>
       </div>
       <Badge variant="outline">{user.role}</Badge>
       <LoadingButton

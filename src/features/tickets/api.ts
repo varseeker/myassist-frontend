@@ -108,6 +108,33 @@ export async function deleteTicketRequest(id: string) {
   return data.data;
 }
 
+export async function exportTicketsBySprintRequest(
+  sprintId: string,
+  format: 'csv' | 'xlsx',
+) {
+  const response = await apiClient.get<Blob>('/tickets/export', {
+    params: { sprintId, format },
+    responseType: 'blob',
+  });
+
+  const disposition = response.headers['content-disposition'] as
+    | string
+    | undefined;
+  const match = disposition?.match(/filename="?([^"]+)"?/i);
+  const filename =
+    match?.[1] ??
+    `tickets_export_${new Date().toISOString().slice(0, 10)}.${format}`;
+
+  const url = window.URL.createObjectURL(response.data);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export async function getAssigneesRequest(projectId?: string) {
   const { data } = await apiClient.get<ApiResponse<Assignee[]>>(
     '/tickets/assignees',

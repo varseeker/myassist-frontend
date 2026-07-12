@@ -68,6 +68,7 @@ export function UserFormDialog({
     resolver: zodResolver(updateUserSchema as never),
     defaultValues: {
       username: '',
+      email: '',
       fullName: '',
       role: 'USER',
       isActive: true,
@@ -98,6 +99,7 @@ export function UserFormDialog({
     if (isEdit && user) {
       editForm.reset({
         username: user.username,
+        email: user.email ?? '',
         fullName: user.fullName,
         role: user.role,
         isActive: user.isActive,
@@ -132,6 +134,11 @@ export function UserFormDialog({
     const projectIds = isEdit ? editProjectIds : createProjectIds;
     await onSubmit({
       ...values,
+      email: values.email?.trim()
+        ? values.email.trim()
+        : isEdit
+          ? ''
+          : undefined,
       phoneNumber: values.phoneNumber?.trim()
         ? values.phoneNumber.trim()
         : isEdit
@@ -174,8 +181,15 @@ export function UserFormDialog({
             onSubmit={editForm.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            <Field label="Email">
-              <Input value={user?.email ?? ''} disabled />
+            <Field
+              label="Email (optional)"
+              error={editForm.formState.errors.email?.message}
+            >
+              <Input
+                type="email"
+                placeholder="name@example.com"
+                {...editForm.register('email')}
+              />
             </Field>
 
             <Field
@@ -300,8 +314,15 @@ export function UserFormDialog({
               />
             </Field>
 
-            <Field label="Email" error={createForm.formState.errors.email?.message}>
-              <Input type="email" {...createForm.register('email')} />
+            <Field
+              label="Email (optional)"
+              error={createForm.formState.errors.email?.message}
+            >
+              <Input
+                type="email"
+                placeholder="name@example.com"
+                {...createForm.register('email')}
+              />
             </Field>
 
             <Field

@@ -12,7 +12,9 @@ export const createUserSchema = z.object({
       /^[a-zA-Z0-9._]+$/,
       'Username may only contain letters, numbers, dots, and underscores',
     ),
-  email: z.email('Invalid email address'),
+  email: z
+    .union([z.literal(''), z.email('Invalid email address')])
+    .optional(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   fullName: z.string().min(2, 'Full name is required'),
   role: roleEnum,
@@ -33,6 +35,7 @@ export const updateUserSchema = z
         /^[a-zA-Z0-9._]+$/,
         'Username may only contain letters, numbers, dots, and underscores',
       ),
+    email: z.union([z.literal(''), z.email('Invalid email address')]).optional(),
     fullName: z.string().min(2, 'Full name is required'),
     role: roleEnum,
     isActive: z.boolean(),
