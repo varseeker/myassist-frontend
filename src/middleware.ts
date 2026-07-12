@@ -33,6 +33,7 @@ export const config = {
     '/users/:path*',
     '/notifications/:path*',
     '/projects/:path*',
+    '/messaging/:path*',
     '/login',
     '/forgot-password',
     '/reset-password',

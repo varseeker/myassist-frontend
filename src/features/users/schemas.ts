@@ -8,6 +8,10 @@ export const createUserSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   fullName: z.string().min(2, 'Full name is required'),
   role: roleEnum,
+  phoneNumber: z.string().optional(),
+  whatsappEnabled: z.boolean().optional(),
+  telegramChatId: z.string().optional(),
+  telegramEnabled: z.boolean().optional(),
   projectIds: z.array(z.string().uuid()).optional(),
 });
 
@@ -17,6 +21,10 @@ export const updateUserSchema = z
     role: roleEnum,
     isActive: z.boolean(),
     password: z.string().optional(),
+    phoneNumber: z.string().optional(),
+    whatsappEnabled: z.boolean().optional(),
+    telegramChatId: z.string().optional(),
+    telegramEnabled: z.boolean().optional(),
     projectIds: z.array(z.string().uuid()).optional(),
   })
   .refine(

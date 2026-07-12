@@ -5,6 +5,7 @@ import {
   FolderKanban,
   LayoutDashboard,
   Menu,
+  MessageCircle,
   PanelLeftClose,
   PanelLeftOpen,
   Ticket,
@@ -60,6 +61,12 @@ const baseNavItems: NavItem[] = [
     href: '/users',
     label: 'Users',
     icon: Users,
+    roles: ['ADMIN'],
+  },
+  {
+    href: '/messaging',
+    label: 'Messaging',
+    icon: MessageCircle,
     roles: ['ADMIN'],
   },
   {

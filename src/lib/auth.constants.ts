@@ -13,4 +13,5 @@ export const PROTECTED_ROUTES = [
   '/users',
   '/notifications',
   '/projects',
+  '/messaging',
 ] as const;

@@ -20,6 +20,7 @@ import {
   getUsersRequest,
   updateUserRequest,
 } from '@/features/users/api';
+import { getMessagingStatusRequest } from '@/features/messaging/api';
 import type {
   CreateUserFormValues,
   UpdateUserFormValues,
@@ -47,6 +48,12 @@ export function UsersPageContent() {
         sortBy: 'createdAt',
         sortOrder: 'desc',
       }),
+  });
+
+  const messagingQuery = useQuery({
+    queryKey: ['messaging-status'],
+    queryFn: getMessagingStatusRequest,
+    staleTime: 60_000,
   });
 
   const createMutation = useMutation({
@@ -356,6 +363,9 @@ export function UsersPageContent() {
         onOpenChange={setDialogOpen}
         mode={dialogMode}
         user={selectedUser}
+        telegramDeepLinkPrefix={
+          messagingQuery.data?.telegram.deepLinkPrefix ?? null
+        }
         onSubmit={handleFormSubmit}
       />
     </>

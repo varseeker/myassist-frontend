@@ -22,6 +22,10 @@ export interface CreateUserPayload {
   password: string;
   fullName: string;
   role: UserRole;
+  phoneNumber?: string;
+  whatsappEnabled?: boolean;
+  telegramChatId?: string;
+  telegramEnabled?: boolean;
   projectIds?: string[];
 }
 
@@ -30,6 +34,10 @@ export interface UpdateUserPayload {
   role?: UserRole;
   isActive?: boolean;
   password?: string;
+  phoneNumber?: string | null;
+  whatsappEnabled?: boolean;
+  telegramChatId?: string | null;
+  telegramEnabled?: boolean;
   projectIds?: string[];
 }
 

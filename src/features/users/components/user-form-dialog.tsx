@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { LoadingOverlay } from '@/components/shared/loading-overlay';
 import { UserProjectField } from '@/features/users/components/user-project-field';
@@ -30,6 +31,7 @@ interface UserFormDialogProps {
   onOpenChange: (open: boolean) => void;
   mode: 'create' | 'edit';
   user?: User | null;
+  telegramDeepLinkPrefix?: string | null;
   onSubmit: (
     values: CreateUserFormValues | UpdateUserFormValues,
   ) => Promise<void>;
@@ -40,6 +42,7 @@ export function UserFormDialog({
   onOpenChange,
   mode,
   user,
+  telegramDeepLinkPrefix,
   onSubmit,
 }: UserFormDialogProps) {
   const isEdit = mode === 'edit';
@@ -53,6 +56,10 @@ export function UserFormDialog({
       password: '',
       fullName: '',
       role: 'USER',
+      phoneNumber: '',
+      whatsappEnabled: true,
+      telegramChatId: '',
+      telegramEnabled: true,
     },
   });
 
@@ -63,6 +70,10 @@ export function UserFormDialog({
       role: 'USER',
       isActive: true,
       password: '',
+      phoneNumber: '',
+      whatsappEnabled: true,
+      telegramChatId: '',
+      telegramEnabled: true,
     },
   });
 
@@ -88,6 +99,10 @@ export function UserFormDialog({
         role: user.role,
         isActive: user.isActive,
         password: '',
+        phoneNumber: user.phoneNumber ?? '',
+        whatsappEnabled: user.whatsappEnabled ?? true,
+        telegramChatId: user.telegramChatId ?? '',
+        telegramEnabled: user.telegramEnabled ?? true,
       });
       setEditProjectIds(user.projects?.map((project) => project.id) ?? []);
       return;
@@ -98,6 +113,10 @@ export function UserFormDialog({
       password: '',
       fullName: '',
       role: 'USER',
+      phoneNumber: '',
+      whatsappEnabled: true,
+      telegramChatId: '',
+      telegramEnabled: true,
     });
     setCreateProjectIds([]);
     setEditProjectIds([]);
@@ -109,14 +128,29 @@ export function UserFormDialog({
     const projectIds = isEdit ? editProjectIds : createProjectIds;
     await onSubmit({
       ...values,
+      phoneNumber: values.phoneNumber?.trim()
+        ? values.phoneNumber.trim()
+        : isEdit
+          ? null
+          : undefined,
+      telegramChatId: values.telegramChatId?.trim()
+        ? values.telegramChatId.trim()
+        : isEdit
+          ? null
+          : undefined,
       projectIds: values.role === 'ADMIN' ? [] : projectIds,
-    });
+    } as CreateUserFormValues | UpdateUserFormValues);
     onOpenChange(false);
   };
 
+  const telegramLink =
+    isEdit && user?.telegramLinkToken && telegramDeepLinkPrefix
+      ? `${telegramDeepLinkPrefix}${user.telegramLinkToken}`
+      : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <LoadingOverlay
           visible={
             createForm.formState.isSubmitting || editForm.formState.isSubmitting
@@ -126,7 +160,7 @@ export function UserFormDialog({
           <DialogTitle>{isEdit ? 'Edit User' : 'Create User'}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? 'Update user profile, role, or status.'
+              ? 'Update profile, messaging contacts, role, or status.'
               : 'Add a new user to MyAssist.'}
           </DialogDescription>
         </DialogHeader>
@@ -160,6 +194,53 @@ export function UserFormDialog({
                 Active account
               </label>
             </Field>
+
+            <Field
+              label="WhatsApp phone"
+              error={editForm.formState.errors.phoneNumber?.message}
+            >
+              <Input
+                placeholder="0812... or +62812..."
+                {...editForm.register('phoneNumber')}
+              />
+            </Field>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" {...editForm.register('whatsappEnabled')} />
+              WhatsApp notifications enabled
+            </label>
+
+            <Field
+              label="Telegram chat ID"
+              error={editForm.formState.errors.telegramChatId?.message}
+            >
+              <Input
+                placeholder="Filled via bot link, or paste manually"
+                {...editForm.register('telegramChatId')}
+              />
+            </Field>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" {...editForm.register('telegramEnabled')} />
+              Telegram notifications enabled
+            </label>
+
+            {telegramLink ? (
+              <div className="space-y-2 rounded-md border p-3 text-xs">
+                <p className="font-medium">Telegram link for this user</p>
+                <p className="break-all text-muted-foreground">{telegramLink}</p>
+                <button
+                  type="button"
+                  className="text-primary underline"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(telegramLink);
+                    toast.success('Telegram link copied');
+                  }}
+                >
+                  Copy link
+                </button>
+              </div>
+            ) : null}
 
             <Field
               label="New Password (optional)"
@@ -220,6 +301,24 @@ export function UserFormDialog({
             >
               <Input type="password" {...createForm.register('password')} />
             </Field>
+
+            <Field
+              label="WhatsApp phone (optional)"
+              error={createForm.formState.errors.phoneNumber?.message}
+            >
+              <Input
+                placeholder="0812... or +62812..."
+                {...createForm.register('phoneNumber')}
+              />
+            </Field>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                {...createForm.register('whatsappEnabled')}
+              />
+              WhatsApp notifications enabled
+            </label>
 
             <UserProjectField
               role={createRole}

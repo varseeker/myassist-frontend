@@ -37,6 +37,11 @@ export interface User {
   email: string;
   fullName: string;
   avatarUrl?: string | null;
+  phoneNumber?: string | null;
+  whatsappEnabled?: boolean;
+  telegramChatId?: string | null;
+  telegramEnabled?: boolean;
+  telegramLinkToken?: string | null;
   role: UserRole;
   roleId: string;
   isActive: boolean;
