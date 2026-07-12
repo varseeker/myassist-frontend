@@ -30,14 +30,25 @@ import {
 import type { CreateTicketSubmitPayload } from '@/features/tickets/schemas';
 import {
   TICKET_PRIORITIES,
+  TICKET_STATUS_GROUP_KEYS,
+  TICKET_STATUS_GROUP_LABELS,
   TICKET_STATUSES,
   TICKET_TYPE_LABELS,
   TICKET_TYPES,
+  type TicketStatusGroupKey,
 } from '@/lib/constants';
 import type { Ticket, TicketPriority, TicketStatus, TicketType } from '@/types';
 
 function isTicketStatus(value: string | null): value is TicketStatus {
   return Boolean(value && (TICKET_STATUSES as readonly string[]).includes(value));
+}
+
+function isTicketStatusGroup(
+  value: string | null,
+): value is TicketStatusGroupKey {
+  return Boolean(
+    value && (TICKET_STATUS_GROUP_KEYS as readonly string[]).includes(value),
+  );
 }
 
 function isTicketPriority(value: string | null): value is TicketPriority {
@@ -59,6 +70,13 @@ export function TicketsPageContent() {
   const [statusFilter, setStatusFilter] = useState<TicketStatus | 'ALL'>(() => {
     const status = searchParams.get('status');
     return isTicketStatus(status) ? status : 'ALL';
+  });
+  const [statusGroupFilter, setStatusGroupFilter] = useState<
+    TicketStatusGroupKey | 'ALL'
+  >(() => {
+    if (searchParams.get('status')) return 'ALL';
+    const group = searchParams.get('statusGroup');
+    return isTicketStatusGroup(group) ? group : 'ALL';
   });
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | 'ALL'>(
     () => {
@@ -102,6 +120,7 @@ export function TicketsPageContent() {
       page,
       search,
       statusFilter,
+      statusGroupFilter,
       priorityFilter,
       typeFilter,
       createdByFilter,
@@ -114,6 +133,10 @@ export function TicketsPageContent() {
         limit: 10,
         search: search || undefined,
         status: statusFilter === 'ALL' ? undefined : statusFilter,
+        statusGroup:
+          statusFilter === 'ALL' && statusGroupFilter !== 'ALL'
+            ? statusGroupFilter
+            : undefined,
         priority: priorityFilter === 'ALL' ? undefined : priorityFilter,
         type: typeFilter === 'ALL' ? undefined : typeFilter,
         createdById:
@@ -139,6 +162,7 @@ export function TicketsPageContent() {
   const hasActiveFilters =
     Boolean(search) ||
     statusFilter !== 'ALL' ||
+    statusGroupFilter !== 'ALL' ||
     priorityFilter !== 'ALL' ||
     typeFilter !== 'ALL' ||
     createdByFilter !== 'ALL' ||
@@ -314,18 +338,48 @@ export function TicketsPageContent() {
           </NativeSelect>
           <NativeSelect
             containerClassName="sm:w-auto"
-            value={statusFilter}
+            value={
+              statusFilter !== 'ALL'
+                ? statusFilter
+                : statusGroupFilter !== 'ALL'
+                  ? `group:${statusGroupFilter}`
+                  : 'ALL'
+            }
             onChange={(event) => {
-              setStatusFilter(event.target.value as TicketStatus | 'ALL');
+              const value = event.target.value;
+              if (value === 'ALL') {
+                setStatusFilter('ALL');
+                setStatusGroupFilter('ALL');
+              } else if (value.startsWith('group:')) {
+                const group = value.slice('group:'.length);
+                setStatusFilter('ALL');
+                setStatusGroupFilter(
+                  isTicketStatusGroup(group) ? group : 'ALL',
+                );
+              } else {
+                setStatusGroupFilter('ALL');
+                setStatusFilter(
+                  isTicketStatus(value) ? value : 'ALL',
+                );
+              }
               setPage(1);
             }}
           >
             <option value="ALL">All statuses</option>
-            {TICKET_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status.replaceAll('_', ' ')}
-              </option>
-            ))}
+            <optgroup label="Dashboard groups">
+              {TICKET_STATUS_GROUP_KEYS.map((group) => (
+                <option key={group} value={`group:${group}`}>
+                  {TICKET_STATUS_GROUP_LABELS[group]}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Exact status">
+              {TICKET_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status.replaceAll('_', ' ')}
+                </option>
+              ))}
+            </optgroup>
           </NativeSelect>
           <NativeSelect
             containerClassName="sm:w-auto"
@@ -396,6 +450,7 @@ export function TicketsPageContent() {
                         onClick={() => {
                           setSearch('');
                           setStatusFilter('ALL');
+                          setStatusGroupFilter('ALL');
                           setPriorityFilter('ALL');
                           setTypeFilter('ALL');
                           setCreatedByFilter('ALL');

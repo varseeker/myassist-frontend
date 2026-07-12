@@ -20,6 +20,35 @@ export const TICKET_STATUSES = [
   'REJECTED',
 ] as const;
 
+/** Same groupings as dashboard overview cards / backend ticket-status-groups */
+export const TICKET_STATUS_GROUPS = {
+  open: ['OPEN', 'USER_INPUT', 'QA_REVIEW', 'REOPENED'],
+  in_progress: [
+    'ASSIGNED',
+    'IN_PROGRESS',
+    'WAITING_INFORMATION',
+    'DONE',
+  ],
+  resolved: ['RESOLVED'],
+  closed: ['CLOSED', 'REJECTED'],
+} as const;
+
+export const TICKET_STATUS_GROUP_KEYS = [
+  'open',
+  'in_progress',
+  'resolved',
+  'closed',
+] as const;
+
+export type TicketStatusGroupKey = (typeof TICKET_STATUS_GROUP_KEYS)[number];
+
+export const TICKET_STATUS_GROUP_LABELS: Record<TicketStatusGroupKey, string> = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  resolved: 'Resolved',
+  closed: 'Closed',
+};
+
 export const TICKET_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
 
 export const TICKET_TYPES = [

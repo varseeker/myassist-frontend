@@ -99,11 +99,13 @@ function formatTrendDate(date: string) {
 
 function ticketsHref(params: {
   status?: TicketStatus;
+  statusGroup?: 'open' | 'in_progress' | 'resolved' | 'closed';
   priority?: TicketPriority;
   type?: TicketType;
 }) {
   const query = new URLSearchParams();
-  if (params.status) query.set('status', params.status);
+  if (params.statusGroup) query.set('statusGroup', params.statusGroup);
+  else if (params.status) query.set('status', params.status);
   if (params.priority) query.set('priority', params.priority);
   if (params.type) query.set('type', params.type);
   const qs = query.toString();
@@ -148,28 +150,28 @@ export function DashboardPageContent() {
           label: 'Open',
           value: summary.openTickets,
           icon: ClipboardList,
-          href: ticketsHref({ status: 'OPEN' }),
+          href: ticketsHref({ statusGroup: 'open' }),
           description: 'Menunggu review / belum dikerjakan',
         },
         {
           label: 'In Progress',
           value: summary.inProgressTickets,
           icon: TrendingUp,
-          href: ticketsHref({ status: 'IN_PROGRESS' }),
+          href: ticketsHref({ statusGroup: 'in_progress' }),
           description: 'Sedang dikerjakan tim',
         },
         {
           label: 'Resolved',
           value: summary.resolvedTickets,
           icon: CheckCircle2,
-          href: ticketsHref({ status: 'RESOLVED' }),
+          href: ticketsHref({ statusGroup: 'resolved' }),
           description: 'Menunggu verifikasi / close',
         },
         {
           label: 'Closed',
           value: summary.closedTickets,
           icon: Shield,
-          href: ticketsHref({ status: 'CLOSED' }),
+          href: ticketsHref({ statusGroup: 'closed' }),
           description: 'Selesai atau ditolak',
         },
         {

@@ -18,6 +18,7 @@ export interface TicketQueryParams {
   limit?: number;
   search?: string;
   status?: TicketStatus;
+  statusGroup?: 'open' | 'in_progress' | 'resolved' | 'closed';
   priority?: TicketPriority;
   type?: TicketType;
   projectId?: string;
