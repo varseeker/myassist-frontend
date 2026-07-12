@@ -17,6 +17,7 @@ import { TicketExportPanel } from '@/features/tickets/components/ticket-export-p
 import { useAuthStore } from '@/features/auth/store';
 import {
   createTicketRequest,
+  getTicketReportersRequest,
   getTicketsRequest,
   uploadTicketAttachmentRequest,
   type CreateTicketPayload,
@@ -40,7 +41,13 @@ export function TicketsPageContent() {
     'ALL',
   );
   const [typeFilter, setTypeFilter] = useState<TicketType | 'ALL'>('ALL');
+  const [createdByFilter, setCreatedByFilter] = useState<string>('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const reportersQuery = useQuery({
+    queryKey: ['ticket-reporters'],
+    queryFn: () => getTicketReportersRequest(),
+  });
 
   const ticketsQuery = useQuery({
     queryKey: [
@@ -50,6 +57,7 @@ export function TicketsPageContent() {
       statusFilter,
       priorityFilter,
       typeFilter,
+      createdByFilter,
     ],
     queryFn: () =>
       getTicketsRequest({
@@ -59,6 +67,8 @@ export function TicketsPageContent() {
         status: statusFilter === 'ALL' ? undefined : statusFilter,
         priority: priorityFilter === 'ALL' ? undefined : priorityFilter,
         type: typeFilter === 'ALL' ? undefined : typeFilter,
+        createdById:
+          createdByFilter === 'ALL' ? undefined : createdByFilter,
         sortBy: 'createdAt',
         sortOrder: 'desc',
       }),
@@ -79,7 +89,8 @@ export function TicketsPageContent() {
     Boolean(search) ||
     statusFilter !== 'ALL' ||
     priorityFilter !== 'ALL' ||
-    typeFilter !== 'ALL';
+    typeFilter !== 'ALL' ||
+    createdByFilter !== 'ALL';
 
   const columns = useMemo<ColumnDef<Ticket>[]>(
     () => [
@@ -127,6 +138,11 @@ export function TicketsPageContent() {
         accessorKey: 'assignedTo',
         header: 'Assignee',
         cell: ({ row }) => row.original.assignedTo?.fullName ?? '—',
+      },
+      {
+        accessorKey: 'createdBy',
+        header: 'Created by',
+        cell: ({ row }) => row.original.createdBy?.fullName ?? '—',
       },
       {
         accessorKey: 'createdAt',
@@ -251,6 +267,21 @@ export function TicketsPageContent() {
               </option>
             ))}
           </NativeSelect>
+          <NativeSelect
+            containerClassName="sm:w-auto"
+            value={createdByFilter}
+            onChange={(event) => {
+              setCreatedByFilter(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="ALL">All creators</option>
+            {(reportersQuery.data ?? []).map((reporter) => (
+              <option key={reporter.id} value={reporter.id}>
+                {reporter.fullName}
+              </option>
+            ))}
+          </NativeSelect>
         </div>
 
         {ticketsQuery.isLoading ? (
@@ -277,6 +308,7 @@ export function TicketsPageContent() {
                           setStatusFilter('ALL');
                           setPriorityFilter('ALL');
                           setTypeFilter('ALL');
+                          setCreatedByFilter('ALL');
                           setPage(1);
                         }}
                       >

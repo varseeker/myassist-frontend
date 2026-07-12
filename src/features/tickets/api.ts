@@ -22,6 +22,7 @@ export interface TicketQueryParams {
   type?: TicketType;
   projectId?: string;
   sprintId?: string;
+  createdById?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   scope?: 'mine' | 'all';
@@ -148,6 +149,13 @@ export async function getProjectMembersRequest(projectId: string) {
   const { data } = await apiClient.get<ApiResponse<Assignee[]>>(
     '/tickets/project-members',
     { params: { projectId } },
+  );
+  return data.data;
+}
+
+export async function getTicketReportersRequest() {
+  const { data } = await apiClient.get<ApiResponse<Assignee[]>>(
+    '/tickets/reporters',
   );
   return data.data;
 }

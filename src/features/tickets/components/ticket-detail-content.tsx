@@ -250,9 +250,9 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
             </CardContent>
           </Card>
 
-          <TicketCommentsSection ticketId={ticketId} />
-
           <TicketAttachmentsSection ticketId={ticketId} />
+
+          <TicketCommentsSection ticketId={ticketId} />
 
           <Card>
             <CardHeader>
@@ -267,34 +267,26 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
                   description="Status changes, assignments, and other workflow actions will appear in this timeline."
                 />
               ) : (
-                ticket.histories.map((history) => {
-                  const historyNote = getHistoryNote(history);
-                  return (
-                    <div
-                      key={history.id}
-                      className="border-l-2 border-muted pl-4"
-                    >
-                      <p className="text-sm font-medium">
-                        {ACTION_LABELS[history.action] ?? history.action}
+                ticket.histories.map((history) => (
+                  <div
+                    key={history.id}
+                    className="border-l-2 border-muted pl-4"
+                  >
+                    <p className="text-sm font-medium">
+                      {ACTION_LABELS[history.action] ?? history.action}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {history.user.fullName} ·{' '}
+                      {new Date(history.createdAt).toLocaleString()}
+                    </p>
+                    {history.fromStatus && history.toStatus ? (
+                      <p className="mt-1 text-xs">
+                        {STATUS_LABELS[history.fromStatus]} →{' '}
+                        {STATUS_LABELS[history.toStatus]}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {history.user.fullName} ·{' '}
-                        {new Date(history.createdAt).toLocaleString()}
-                      </p>
-                      {history.fromStatus && history.toStatus ? (
-                        <p className="mt-1 text-xs">
-                          {STATUS_LABELS[history.fromStatus]} →{' '}
-                          {STATUS_LABELS[history.toStatus]}
-                        </p>
-                      ) : null}
-                      {historyNote ? (
-                        <p className="mt-1 whitespace-pre-wrap text-xs text-muted-foreground">
-                          Note: {historyNote}
-                        </p>
-                      ) : null}
-                    </div>
-                  );
-                })
+                    ) : null}
+                  </div>
+                ))
               )}
             </CardContent>
           </Card>
@@ -374,35 +366,58 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
                   description="Setiap perubahan status akan menampilkan note di sini."
                 />
               ) : (
-                statusNotes.map((history) => (
-                  <div
-                    key={history.id}
-                    className="rounded-lg border bg-muted/30 p-3"
-                  >
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      {history.fromStatus && history.toStatus ? (
+                statusNotes.map((history) => {
+                  const actorName =
+                    (typeof history.metadata?.actorName === 'string'
+                      ? history.metadata.actorName
+                      : null) || history.user.fullName;
+                  const assigneeName =
+                    typeof history.metadata?.assignedToName === 'string'
+                      ? history.metadata.assignedToName
+                      : null;
+                  const fromLabel = history.fromStatus
+                    ? STATUS_LABELS[history.fromStatus]
+                    : null;
+                  const toLabel = history.toStatus
+                    ? STATUS_LABELS[history.toStatus]
+                    : null;
+
+                  let transitionLabel: string | null = null;
+                  if (fromLabel && toLabel) {
+                    if (history.toStatus === 'ASSIGNED' && assigneeName) {
+                      transitionLabel = `${fromLabel} (${actorName}) → ${toLabel} (${assigneeName})`;
+                    } else {
+                      transitionLabel = `${fromLabel} (${actorName}) → ${toLabel}`;
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={history.id}
+                      className="rounded-lg border bg-muted/30 p-3"
+                    >
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        {transitionLabel ? (
+                          <span>{transitionLabel}</span>
+                        ) : (
+                          <span>{actorName}</span>
+                        )}
+                        <span>·</span>
                         <span>
-                          {STATUS_LABELS[history.fromStatus]} →{' '}
-                          {STATUS_LABELS[history.toStatus]}
+                          {new Date(history.createdAt).toLocaleString()}
                         </span>
-                      ) : null}
-                      <span>·</span>
-                      <span>{history.user.fullName}</span>
-                      <span>·</span>
-                      <span>
-                        {new Date(history.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="mt-2 whitespace-pre-wrap text-sm">
-                      {getHistoryNote(history)}
-                    </p>
-                    {typeof history.metadata?.mentionUserName === 'string' ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Mention: {history.metadata.mentionUserName}
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap text-sm">
+                        {getHistoryNote(history)}
                       </p>
-                    ) : null}
-                  </div>
-                ))
+                      {typeof history.metadata?.mentionUserName === 'string' ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Mention: {history.metadata.mentionUserName}
+                        </p>
+                      ) : null}
+                    </div>
+                  );
+                })
               )}
             </CardContent>
           </Card>

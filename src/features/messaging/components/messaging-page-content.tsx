@@ -113,8 +113,8 @@ export function MessagingPageContent() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Messaging</h1>
           <p className="text-sm text-muted-foreground">
-            Notifikasi tiket dikirim lewat <strong>WhatsApp dan Telegram</strong> secara
-            paralel. Keep-alive Baileys aktif agar koneksi lebih stabil.
+            Notifikasi tiket dikirim lewat <strong>WhatsApp (Baileys)</strong> dan{' '}
+            <strong>Telegram</strong>. WhatsApp memakai jeda + kuota anti-spam.
           </p>
         </div>
         <LoadingButton

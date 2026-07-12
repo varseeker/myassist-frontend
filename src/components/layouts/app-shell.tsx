@@ -205,21 +205,46 @@ export function AppShell({ children, className }: AppShellProps) {
         <div
           className={cn(
             'flex h-14 shrink-0 items-center border-b md:h-16',
-            sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4',
+            sidebarCollapsed ? 'justify-center px-2' : 'justify-between gap-2 px-4',
           )}
         >
-          <Link
-            href="/dashboard"
+          <div
             className={cn(
-              'font-semibold tracking-tight text-foreground transition-opacity',
-              sidebarCollapsed
-                ? 'flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary'
-                : 'text-lg',
+              'flex min-w-0 items-center',
+              sidebarCollapsed ? 'justify-center' : 'gap-1',
             )}
-            onClick={() => setMobileNavOpen(false)}
           >
-            {sidebarCollapsed ? APP_NAME.charAt(0) : APP_NAME}
-          </Link>
+            <Link
+              href="/dashboard"
+              className={cn(
+                'font-semibold tracking-tight text-foreground transition-opacity',
+                sidebarCollapsed
+                  ? 'flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary'
+                  : 'text-lg',
+              )}
+              onClick={() => setMobileNavOpen(false)}
+            >
+              {sidebarCollapsed ? APP_NAME.charAt(0) : APP_NAME}
+            </Link>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="hidden shrink-0 md:inline-flex"
+              onClick={toggleCollapsed}
+              aria-label={
+                sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
+              }
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? (
+                <PanelLeftOpen className="size-4" />
+              ) : (
+                <PanelLeftClose className="size-4" />
+              )}
+            </Button>
+          </div>
 
           <Button
             type="button"
@@ -239,27 +264,6 @@ export function AppShell({ children, className }: AppShellProps) {
           collapsed={sidebarCollapsed}
           onNavigate={() => setMobileNavOpen(false)}
         />
-
-        <div className="hidden border-t p-2 md:block">
-          <Button
-            type="button"
-            variant="ghost"
-            size={sidebarCollapsed ? 'icon-sm' : 'sm'}
-            className={cn('w-full', sidebarCollapsed && 'mx-auto')}
-            onClick={toggleCollapsed}
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen className="size-4" />
-            ) : (
-              <>
-                <PanelLeftClose className="size-4" />
-                <span>Collapse</span>
-              </>
-            )}
-          </Button>
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
