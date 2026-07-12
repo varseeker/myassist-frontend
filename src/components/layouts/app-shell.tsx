@@ -7,7 +7,6 @@ import {
   Menu,
   MessageCircle,
   PanelLeftClose,
-  PanelLeftOpen,
   Ticket,
   Users,
   X,
@@ -205,57 +204,53 @@ export function AppShell({ children, className }: AppShellProps) {
         <div
           className={cn(
             'flex h-14 shrink-0 items-center border-b md:h-16',
-            sidebarCollapsed ? 'justify-center px-2' : 'justify-between gap-2 px-4',
+            sidebarCollapsed ? 'justify-center px-2' : 'justify-between gap-3 px-4',
           )}
         >
-          <div
-            className={cn(
-              'flex min-w-0 items-center',
-              sidebarCollapsed ? 'justify-center' : 'gap-1',
-            )}
-          >
-            <Link
-              href="/dashboard"
-              className={cn(
-                'font-semibold tracking-tight text-foreground transition-opacity',
-                sidebarCollapsed
-                  ? 'flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary'
-                  : 'text-lg',
-              )}
-              onClick={() => setMobileNavOpen(false)}
-            >
-              {sidebarCollapsed ? APP_NAME.charAt(0) : APP_NAME}
-            </Link>
-
-            <Button
+          {sidebarCollapsed ? (
+            <button
               type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="hidden shrink-0 md:inline-flex"
+              className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
               onClick={toggleCollapsed}
-              aria-label={
-                sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
-              }
-              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
             >
-              {sidebarCollapsed ? (
-                <PanelLeftOpen className="size-4" />
-              ) : (
-                <PanelLeftClose className="size-4" />
-              )}
-            </Button>
-          </div>
+              {APP_NAME.charAt(0)}
+            </button>
+          ) : (
+            <>
+              <Link
+                href="/dashboard"
+                className="min-w-0 truncate text-lg font-semibold tracking-tight text-foreground"
+                onClick={() => setMobileNavOpen(false)}
+              >
+                {APP_NAME}
+              </Link>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="md:hidden"
-            aria-label="Close navigation menu"
-            onClick={() => setMobileNavOpen(false)}
-          >
-            <X className="size-4" />
-          </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="ml-auto hidden shrink-0 md:inline-flex"
+                onClick={toggleCollapsed}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose className="size-4" />
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0 md:hidden"
+                aria-label="Close navigation menu"
+                onClick={() => setMobileNavOpen(false)}
+              >
+                <X className="size-4" />
+              </Button>
+            </>
+          )}
         </div>
 
         <SidebarNav

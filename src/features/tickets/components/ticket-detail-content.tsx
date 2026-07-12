@@ -371,10 +371,29 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
                     (typeof history.metadata?.actorName === 'string'
                       ? history.metadata.actorName
                       : null) || history.user.fullName;
-                  const assigneeName =
+
+                  const metadataAssigneeId =
+                    typeof history.metadata?.assignedToId === 'string'
+                      ? history.metadata.assignedToId
+                      : null;
+                  const metadataAssigneeName =
                     typeof history.metadata?.assignedToName === 'string'
                       ? history.metadata.assignedToName
                       : null;
+                  const lookupAssigneeName = metadataAssigneeId
+                    ? (assigneesQuery.data ?? []).find(
+                        (item) => item.id === metadataAssigneeId,
+                      )?.fullName
+                    : null;
+                  const fallbackAssigneeName =
+                    history.toStatus === 'ASSIGNED'
+                      ? (ticket.assignedTo?.fullName ?? null)
+                      : null;
+                  const assigneeName =
+                    metadataAssigneeName ||
+                    lookupAssigneeName ||
+                    fallbackAssigneeName;
+
                   const fromLabel = history.fromStatus
                     ? STATUS_LABELS[history.fromStatus]
                     : null;
@@ -384,8 +403,10 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
 
                   let transitionLabel: string | null = null;
                   if (fromLabel && toLabel) {
-                    if (history.toStatus === 'ASSIGNED' && assigneeName) {
-                      transitionLabel = `${fromLabel} (${actorName}) → ${toLabel} (${assigneeName})`;
+                    if (history.toStatus === 'ASSIGNED') {
+                      transitionLabel = assigneeName
+                        ? `${fromLabel} (${actorName}) → ${toLabel} (${assigneeName})`
+                        : `${fromLabel} (${actorName}) → ${toLabel}`;
                     } else {
                       transitionLabel = `${fromLabel} (${actorName}) → ${toLabel}`;
                     }

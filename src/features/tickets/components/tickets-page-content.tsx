@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, Plus, SearchX, Ticket as TicketIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/shared/data-table';
@@ -15,6 +16,10 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { TicketFormDialog } from '@/features/tickets/components/ticket-form-dialog';
 import { TicketExportPanel } from '@/features/tickets/components/ticket-export-panel';
 import { useAuthStore } from '@/features/auth/store';
+import {
+  getProjectSprintsRequest,
+  getProjectsRequest,
+} from '@/features/projects/api';
 import {
   createTicketRequest,
   getTicketReportersRequest,
@@ -31,22 +36,64 @@ import {
 } from '@/lib/constants';
 import type { Ticket, TicketPriority, TicketStatus, TicketType } from '@/types';
 
+function isTicketStatus(value: string | null): value is TicketStatus {
+  return Boolean(value && (TICKET_STATUSES as readonly string[]).includes(value));
+}
+
+function isTicketPriority(value: string | null): value is TicketPriority {
+  return Boolean(
+    value && (TICKET_PRIORITIES as readonly string[]).includes(value),
+  );
+}
+
+function isTicketType(value: string | null): value is TicketType {
+  return Boolean(value && (TICKET_TYPES as readonly string[]).includes(value));
+}
+
 export function TicketsPageContent() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TicketStatus | 'ALL'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<TicketStatus | 'ALL'>(() => {
+    const status = searchParams.get('status');
+    return isTicketStatus(status) ? status : 'ALL';
+  });
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | 'ALL'>(
-    'ALL',
+    () => {
+      const priority = searchParams.get('priority');
+      return isTicketPriority(priority) ? priority : 'ALL';
+    },
   );
-  const [typeFilter, setTypeFilter] = useState<TicketType | 'ALL'>('ALL');
+  const [typeFilter, setTypeFilter] = useState<TicketType | 'ALL'>(() => {
+    const type = searchParams.get('type');
+    return isTicketType(type) ? type : 'ALL';
+  });
   const [createdByFilter, setCreatedByFilter] = useState<string>('ALL');
+  const [projectFilter, setProjectFilter] = useState<string>('ALL');
+  const [sprintFilter, setSprintFilter] = useState<string>('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const reportersQuery = useQuery({
     queryKey: ['ticket-reporters'],
     queryFn: () => getTicketReportersRequest(),
+  });
+
+  const projectsQuery = useQuery({
+    queryKey: ['ticket-filter-projects'],
+    queryFn: () =>
+      getProjectsRequest({
+        page: 1,
+        limit: 100,
+        isActive: true,
+      }),
+  });
+
+  const sprintsQuery = useQuery({
+    queryKey: ['ticket-filter-sprints', projectFilter],
+    queryFn: () => getProjectSprintsRequest(projectFilter),
+    enabled: projectFilter !== 'ALL',
   });
 
   const ticketsQuery = useQuery({
@@ -58,6 +105,8 @@ export function TicketsPageContent() {
       priorityFilter,
       typeFilter,
       createdByFilter,
+      projectFilter,
+      sprintFilter,
     ],
     queryFn: () =>
       getTicketsRequest({
@@ -69,6 +118,8 @@ export function TicketsPageContent() {
         type: typeFilter === 'ALL' ? undefined : typeFilter,
         createdById:
           createdByFilter === 'ALL' ? undefined : createdByFilter,
+        projectId: projectFilter === 'ALL' ? undefined : projectFilter,
+        sprintId: sprintFilter === 'ALL' ? undefined : sprintFilter,
         sortBy: 'createdAt',
         sortOrder: 'desc',
       }),
@@ -90,7 +141,9 @@ export function TicketsPageContent() {
     statusFilter !== 'ALL' ||
     priorityFilter !== 'ALL' ||
     typeFilter !== 'ALL' ||
-    createdByFilter !== 'ALL';
+    createdByFilter !== 'ALL' ||
+    projectFilter !== 'ALL' ||
+    sprintFilter !== 'ALL';
 
   const columns = useMemo<ColumnDef<Ticket>[]>(
     () => [
@@ -224,6 +277,43 @@ export function TicketsPageContent() {
           />
           <NativeSelect
             containerClassName="sm:w-auto"
+            value={projectFilter}
+            onChange={(event) => {
+              setProjectFilter(event.target.value);
+              setSprintFilter('ALL');
+              setPage(1);
+            }}
+          >
+            <option value="ALL">All projects</option>
+            {(projectsQuery.data?.items ?? []).map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.code} — {project.name}
+              </option>
+            ))}
+          </NativeSelect>
+          <NativeSelect
+            containerClassName="sm:w-auto"
+            value={sprintFilter}
+            disabled={projectFilter === 'ALL'}
+            onChange={(event) => {
+              setSprintFilter(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="ALL">
+              {projectFilter === 'ALL'
+                ? 'Select project first'
+                : 'All sprints'}
+            </option>
+            {(sprintsQuery.data ?? []).map((sprint) => (
+              <option key={sprint.id} value={sprint.id}>
+                {sprint.name}
+                {sprint.isActive ? ' (Active)' : ''}
+              </option>
+            ))}
+          </NativeSelect>
+          <NativeSelect
+            containerClassName="sm:w-auto"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value as TicketStatus | 'ALL');
@@ -309,6 +399,8 @@ export function TicketsPageContent() {
                           setPriorityFilter('ALL');
                           setTypeFilter('ALL');
                           setCreatedByFilter('ALL');
+                          setProjectFilter('ALL');
+                          setSprintFilter('ALL');
                           setPage(1);
                         }}
                       >
