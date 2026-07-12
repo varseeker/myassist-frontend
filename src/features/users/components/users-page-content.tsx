@@ -101,7 +101,9 @@ export function UsersPageContent() {
         cell: ({ row }) => (
           <div>
             <p className="font-medium">{row.original.fullName}</p>
-            <p className="text-xs text-muted-foreground">{row.original.email}</p>
+            <p className="text-xs text-muted-foreground">
+              @{row.original.username} · {row.original.email}
+            </p>
           </div>
         ),
       },
@@ -241,7 +243,7 @@ export function UsersPageContent() {
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Input
-            placeholder="Search by name or email..."
+            placeholder="Search by name, username, or email..."
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);

@@ -34,6 +34,7 @@ export interface PaginatedResponse<T> {
 
 export interface User {
   id: string;
+  username: string;
   email: string;
   fullName: string;
   avatarUrl?: string | null;

@@ -15,7 +15,7 @@ interface AuthState {
   user: User | null;
   isHydrated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
   setSession: (accessToken: string, user: User) => void;
@@ -38,10 +38,10 @@ export const useAuthStore = create<AuthState>()(
         set({ accessToken: null, user: null });
       },
 
-      login: async (email, password) => {
+      login: async (username, password) => {
         set({ isLoading: true });
         try {
-          const result = await loginRequest(email, password);
+          const result = await loginRequest(username, password);
           set({
             accessToken: result.accessToken,
             user: result.user,

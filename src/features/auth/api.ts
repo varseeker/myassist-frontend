@@ -3,7 +3,10 @@ import type { ApiResponse, User } from '@/types';
 
 export interface AuthTokens {
   accessToken: string;
-  user: Pick<User, 'id' | 'email' | 'fullName' | 'role' | 'roleId' | 'isActive'>;
+  user: Pick<
+    User,
+    'id' | 'username' | 'email' | 'fullName' | 'role' | 'roleId' | 'isActive'
+  >;
 }
 
 export interface ForgotPasswordResult {
@@ -11,9 +14,9 @@ export interface ForgotPasswordResult {
   resetToken?: string;
 }
 
-export async function loginRequest(email: string, password: string) {
+export async function loginRequest(username: string, password: string) {
   const { data } = await apiClient.post<ApiResponse<AuthTokens>>('/auth/login', {
-    email,
+    username,
     password,
   });
   return data.data;

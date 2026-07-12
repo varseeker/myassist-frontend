@@ -28,7 +28,7 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema as never),
     defaultValues: {
-      email: '',
+      username: '',
       password: '',
     },
   });
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
-      await login(values.email, values.password);
+      await login(values.username, values.password);
       toast.success('Welcome back!');
       router.push(redirect);
     } catch (error) {
@@ -50,7 +50,9 @@ export default function LoginPage() {
     <Card>
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">{APP_NAME}</CardTitle>
-        <CardDescription>Sign in to your service desk account</CardDescription>
+        <CardDescription>
+          Sign in with your username and password
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {sessionExpired ? (
@@ -64,16 +66,17 @@ export default function LoginPage() {
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="admin@myassist.local"
-              {...form.register('email')}
+              id="username"
+              type="text"
+              autoComplete="username"
+              placeholder="admin"
+              {...form.register('username')}
             />
-            {form.formState.errors.email ? (
+            {form.formState.errors.username ? (
               <p className="text-sm text-destructive">
-                {form.formState.errors.email.message}
+                {form.formState.errors.username.message}
               </p>
             ) : null}
           </div>
@@ -83,6 +86,7 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               {...form.register('password')}
             />

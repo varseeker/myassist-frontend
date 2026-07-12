@@ -18,6 +18,7 @@ export interface UserQueryParams {
 }
 
 export interface CreateUserPayload {
+  username: string;
   email: string;
   password: string;
   fullName: string;
@@ -30,6 +31,7 @@ export interface CreateUserPayload {
 }
 
 export interface UpdateUserPayload {
+  username?: string;
   fullName?: string;
   role?: UserRole;
   isActive?: boolean;

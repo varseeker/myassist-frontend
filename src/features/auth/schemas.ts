@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  email: z.email('Invalid email address'),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(32, 'Username must be at most 32 characters')
+    .regex(
+      /^[a-zA-Z0-9._]+$/,
+      'Username may only contain letters, numbers, dots, and underscores',
+    ),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 

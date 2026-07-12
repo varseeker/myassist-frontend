@@ -4,6 +4,14 @@ import { USER_ROLES } from '@/lib/constants';
 const roleEnum = z.enum(USER_ROLES);
 
 export const createUserSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(32, 'Username must be at most 32 characters')
+    .regex(
+      /^[a-zA-Z0-9._]+$/,
+      'Username may only contain letters, numbers, dots, and underscores',
+    ),
   email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   fullName: z.string().min(2, 'Full name is required'),
@@ -17,6 +25,14 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = z
   .object({
+    username: z
+      .string()
+      .min(3, 'Username must be at least 3 characters')
+      .max(32, 'Username must be at most 32 characters')
+      .regex(
+        /^[a-zA-Z0-9._]+$/,
+        'Username may only contain letters, numbers, dots, and underscores',
+      ),
     fullName: z.string().min(2, 'Full name is required'),
     role: roleEnum,
     isActive: z.boolean(),

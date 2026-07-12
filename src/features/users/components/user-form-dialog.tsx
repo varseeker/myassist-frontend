@@ -52,6 +52,7 @@ export function UserFormDialog({
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema as never),
     defaultValues: {
+      username: '',
       email: '',
       password: '',
       fullName: '',
@@ -66,6 +67,7 @@ export function UserFormDialog({
   const editForm = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserSchema as never),
     defaultValues: {
+      username: '',
       fullName: '',
       role: 'USER',
       isActive: true,
@@ -95,6 +97,7 @@ export function UserFormDialog({
 
     if (isEdit && user) {
       editForm.reset({
+        username: user.username,
         fullName: user.fullName,
         role: user.role,
         isActive: user.isActive,
@@ -109,6 +112,7 @@ export function UserFormDialog({
     }
 
     createForm.reset({
+      username: '',
       email: '',
       password: '',
       fullName: '',
@@ -172,6 +176,17 @@ export function UserFormDialog({
           >
             <Field label="Email">
               <Input value={user?.email ?? ''} disabled />
+            </Field>
+
+            <Field
+              label="Username"
+              error={editForm.formState.errors.username?.message}
+            >
+              <Input
+                autoComplete="username"
+                placeholder="johndoe"
+                {...editForm.register('username')}
+              />
             </Field>
 
             <Field label="Full Name" error={editForm.formState.errors.fullName?.message}>
@@ -274,6 +289,17 @@ export function UserFormDialog({
             onSubmit={createForm.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
+            <Field
+              label="Username"
+              error={createForm.formState.errors.username?.message}
+            >
+              <Input
+                autoComplete="username"
+                placeholder="johndoe"
+                {...createForm.register('username')}
+              />
+            </Field>
+
             <Field label="Email" error={createForm.formState.errors.email?.message}>
               <Input type="email" {...createForm.register('email')} />
             </Field>
