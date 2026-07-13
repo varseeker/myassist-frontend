@@ -50,7 +50,7 @@ export interface UpdateTicketStatusPayload {
   status: TicketStatus;
   assignedToId?: string;
   mentionUserId?: string;
-  note: string;
+  note?: string;
 }
 
 export interface Assignee {
@@ -108,6 +108,17 @@ export async function deleteTicketRequest(id: string) {
   const { data } = await apiClient.delete<ApiResponse<{ message: string }>>(
     `/tickets/${id}`,
   );
+  return data.data;
+}
+
+export async function bulkDeleteTicketsRequest(payload: {
+  ids?: string[];
+  deleteMatchingFilter?: boolean;
+  filter?: TicketQueryParams;
+}) {
+  const { data } = await apiClient.post<
+    ApiResponse<{ message: string; deletedCount: number }>
+  >('/tickets/bulk-delete', payload);
   return data.data;
 }
 

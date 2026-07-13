@@ -58,6 +58,57 @@ export async function getProjectSprintsRequest(
   return data.data;
 }
 
+export interface ProjectMember {
+  id: string;
+  fullName: string;
+  username: string;
+  email: string | null;
+  role: string;
+}
+
+export interface AssignableUser extends ProjectMember {
+  projectCount: number;
+}
+
+export async function getProjectMembersListRequest(projectId: string) {
+  const { data } = await apiClient.get<ApiResponse<ProjectMember[]>>(
+    `/projects/${projectId}/members`,
+  );
+  return data.data;
+}
+
+export async function getAssignableUsersRequest(
+  projectId: string,
+  search?: string,
+) {
+  const { data } = await apiClient.get<ApiResponse<AssignableUser[]>>(
+    `/projects/${projectId}/assignable-users`,
+    { params: { search: search || undefined } },
+  );
+  return data.data;
+}
+
+export async function assignProjectMemberRequest(
+  projectId: string,
+  userId: string,
+) {
+  const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
+    `/projects/${projectId}/members`,
+    { userId },
+  );
+  return data.data;
+}
+
+export async function removeProjectMemberRequest(
+  projectId: string,
+  userId: string,
+) {
+  const { data } = await apiClient.delete<ApiResponse<{ message: string }>>(
+    `/projects/${projectId}/members/${userId}`,
+  );
+  return data.data;
+}
+
 export async function createSprintRequest(
   projectId: string,
   payload: {

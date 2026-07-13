@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import { useAuthStore } from '@/features/auth/store';
+import { cn } from '@/lib/utils';
 
 export function UserMenu() {
   const router = useRouter();
@@ -39,6 +42,12 @@ export function UserMenu() {
         </p>
       </div>
       <Badge variant="outline">{user.role}</Badge>
+      <Link
+        href="/profile"
+        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+      >
+        Profile
+      </Link>
       <LoadingButton
         variant="outline"
         size="sm"

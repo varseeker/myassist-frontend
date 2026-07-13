@@ -77,6 +77,36 @@ export async function deleteUserRequest(id: string) {
   return data.data;
 }
 
+export interface BulkImportUserRowResult {
+  row: number;
+  username: string;
+  status: 'created' | 'error';
+  message?: string;
+  temporaryPassword?: string;
+  role?: string;
+  project?: string;
+}
+
+export interface BulkImportUsersResult {
+  totalRows: number;
+  createdCount: number;
+  errorCount: number;
+  results: BulkImportUserRowResult[];
+}
+
+export async function bulkImportUsersRequest(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const { data } = await apiClient.post<ApiResponse<BulkImportUsersResult>>(
+    '/users/bulk-import',
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  );
+  return data.data;
+}
+
 export async function getRolesRequest() {
   const { data } = await apiClient.get<ApiResponse<Role[]>>('/roles');
   return data.data;

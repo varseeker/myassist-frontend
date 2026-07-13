@@ -2,7 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, QrCode, RefreshCw, Send } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { LoadingState } from '@/components/shared/loading-state';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +35,7 @@ const STATUS_LABEL: Record<WhatsAppSessionStatus['status'], string> = {
 
 export function MessagingPageContent() {
   const queryClient = useQueryClient();
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const statusQuery = useQuery({
     queryKey: ['messaging-status'],
@@ -232,15 +235,7 @@ export function MessagingPageContent() {
                 <Button
                   variant="outline"
                   disabled={disconnectMutation.isPending}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        'Logout sesi WhatsApp? File kredensial akan dihapus dan Anda harus scan QR lagi.',
-                      )
-                    ) {
-                      disconnectMutation.mutate(true);
-                    }
-                  }}
+                  onClick={() => setConfirmLogout(true)}
                 >
                   Logout sesi
                 </Button>
@@ -325,6 +320,21 @@ export function MessagingPageContent() {
           </Card>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmLogout}
+        onOpenChange={(open) => {
+          if (!open) setConfirmLogout(false);
+        }}
+        title="Logout WhatsApp session?"
+        description="Logout sesi WhatsApp? File kredensial akan dihapus dan Anda harus scan QR lagi."
+        confirmLabel="Logout"
+        loading={disconnectMutation.isPending}
+        onConfirm={async () => {
+          await disconnectMutation.mutateAsync(true);
+          setConfirmLogout(false);
+        }}
+      />
     </div>
   );
 }

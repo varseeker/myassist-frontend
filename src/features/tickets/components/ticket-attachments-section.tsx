@@ -2,8 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, Paperclip, Trash2, Upload } from 'lucide-react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { EmptyState } from '@/components/shared/empty-state';
 import { LoadingState } from '@/components/shared/loading-state';
@@ -36,6 +37,9 @@ export function TicketAttachmentsSection({
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [confirmDelete, setConfirmDelete] = useState<TicketAttachment | null>(
+    null,
+  );
 
   const attachmentsQuery = useQuery({
     queryKey: ['ticket-attachments', ticketId],
@@ -166,11 +170,7 @@ export function TicketAttachmentsSection({
                       user?.role === 'ADMIN'
                     }
                     onDownload={() => downloadMutation.mutate(attachment.id)}
-                    onDelete={() => {
-                      if (window.confirm(`Delete ${attachment.fileName}?`)) {
-                        deleteMutation.mutate(attachment.id);
-                      }
-                    }}
+                    onDelete={() => setConfirmDelete(attachment)}
                     isDownloading={downloadMutation.isPending}
                     isDeleting={deleteMutation.isPending}
                   />
@@ -215,15 +215,7 @@ export function TicketAttachmentsSection({
                             variant="outline"
                             size="sm"
                             disabled={deleteMutation.isPending}
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  `Delete ${attachment.fileName}?`,
-                                )
-                              ) {
-                                deleteMutation.mutate(attachment.id);
-                              }
-                            }}
+                            onClick={() => setConfirmDelete(attachment)}
                           >
                             <Trash2 className="size-3.5" />
                           </Button>
@@ -237,6 +229,24 @@ export function TicketAttachmentsSection({
           </>
         )}
       </CardContent>
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+        title="Delete attachment?"
+        description={
+          confirmDelete ? `Delete ${confirmDelete.fileName}?` : ''
+        }
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={async () => {
+          if (!confirmDelete) return;
+          await deleteMutation.mutateAsync(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
     </Card>
   );
 }

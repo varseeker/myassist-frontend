@@ -54,3 +54,34 @@ export async function resetPasswordRequest(token: string, password: string) {
   );
   return data.data;
 }
+
+export async function registerRequest(payload: {
+  username: string;
+  email?: string;
+  fullName: string;
+  password: string;
+}) {
+  const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
+    '/auth/register',
+    payload,
+  );
+  return data.data;
+}
+
+export interface UpdateProfilePayload {
+  username?: string;
+  email?: string | null;
+  fullName?: string;
+  phoneNumber?: string | null;
+  whatsappEnabled?: boolean;
+  telegramChatId?: string | null;
+  telegramEnabled?: boolean;
+}
+
+export async function updateProfileRequest(payload: UpdateProfilePayload) {
+  const { data } = await apiClient.patch<ApiResponse<User>>(
+    '/auth/profile',
+    payload,
+  );
+  return data.data;
+}

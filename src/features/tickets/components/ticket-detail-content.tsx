@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { EmptyState } from '@/components/shared/empty-state';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { LoadingState } from '@/components/shared/loading-state';
@@ -50,6 +51,7 @@ const ACTION_LABELS: Record<string, string> = {
   TICKET_CREATED: 'Ticket created',
   TICKET_UPDATED: 'Ticket updated',
   STATUS_CHANGED: 'Status changed',
+  ASSIGNEE_CHANGED: 'Assignee changed',
   TICKET_DELETED: 'Ticket deleted',
   COMMENT_ADDED: 'Comment added',
   COMMENT_DELETED: 'Comment deleted',
@@ -68,8 +70,10 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
   const user = useAuthStore((state) => state.user);
   const [selectedStatus, setSelectedStatus] = useState<TicketStatus | ''>('');
   const [assigneeId, setAssigneeId] = useState('');
+  const [reassignAssigneeId, setReassignAssigneeId] = useState('');
   const [mentionUserId, setMentionUserId] = useState('');
   const [note, setNote] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const ticketQuery = useQuery({
     queryKey: ['ticket', ticketId],
@@ -80,7 +84,9 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
     queryKey: ['ticket-assignees', ticketQuery.data?.projectId],
     queryFn: () => getAssigneesRequest(ticketQuery.data?.projectId),
     enabled:
-      (user?.role === 'ADMIN' || user?.role === 'QA') &&
+      (user?.role === 'ADMIN' ||
+        user?.role === 'QA' ||
+        user?.role === 'DEVELOPER') &&
       Boolean(ticketQuery.data?.projectId),
   });
 
@@ -98,7 +104,7 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
       status: TicketStatus;
       assignedToId?: string;
       mentionUserId?: string;
-      note: string;
+      note?: string;
     }) => updateTicketStatusRequest(ticketId, payload),
     onSuccess: () => {
       toast.success('Ticket status updated');
@@ -106,6 +112,7 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
       setAssigneeId('');
       setMentionUserId('');
       setNote('');
+      setReassignAssigneeId('');
       void queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
       void queryClient.invalidateQueries({ queryKey: ['tickets'] });
       void queryClient.invalidateQueries({
@@ -119,6 +126,7 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
     mutationFn: () => deleteTicketRequest(ticketId),
     onSuccess: () => {
       toast.success('Ticket deleted');
+      void queryClient.invalidateQueries({ queryKey: ['tickets'] });
       router.push('/tickets');
     },
     onError: (error: Error) => toast.error(error.message),
@@ -128,9 +136,11 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
   const transitions = ticket?.availableTransitions ?? [];
   const requiresAssignee = selectedStatus === 'ASSIGNED';
   const requiresMention = selectedStatus === 'RESOLVED';
+  const requiresNote = selectedStatus === 'QA_REVIEW';
   const canTriage =
     ticket?.status === 'USER_INPUT' &&
     (user?.role === 'QA' || user?.role === 'ADMIN');
+  const canReassign = Boolean(ticket?.canReassign);
 
   const statusNotes = useMemo(() => {
     if (!ticket?.histories) {
@@ -138,7 +148,9 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
     }
     return ticket.histories.filter(
       (history) =>
-        history.action === 'STATUS_CHANGED' && getHistoryNote(history),
+        (history.action === 'STATUS_CHANGED' ||
+          history.action === 'ASSIGNEE_CHANGED') &&
+        getHistoryNote(history),
     );
   }, [ticket?.histories]);
 
@@ -147,8 +159,8 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
       return;
     }
 
-    if (!note.trim() || note.trim().length < 3) {
-      toast.error('Note wajib diisi (minimal 3 karakter)');
+    if (requiresNote && note.trim().length < 3) {
+      toast.error('Note wajib diisi untuk QA Review (minimal 3 karakter)');
       return;
     }
 
@@ -166,7 +178,23 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
       status: selectedStatus,
       assignedToId: assigneeId || undefined,
       mentionUserId: mentionUserId || undefined,
-      note: note.trim(),
+      note: note.trim() || undefined,
+    });
+  };
+
+  const handleReassign = async () => {
+    if (!reassignAssigneeId) {
+      toast.error('Pilih developer baru');
+      return;
+    }
+    if (reassignAssigneeId === ticket?.assignedToId) {
+      toast.error('Pilih developer yang berbeda');
+      return;
+    }
+
+    await statusMutation.mutateAsync({
+      status: 'ASSIGNED',
+      assignedToId: reassignAssigneeId,
     });
   };
 
@@ -221,15 +249,7 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
             variant="outline"
             size="sm"
             disabled={deleteMutation.isPending}
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Delete ticket ${ticket.ticketNumber}? This cannot be undone.`,
-                )
-              ) {
-                deleteMutation.mutate();
-              }
-            }}
+            onClick={() => setConfirmDelete(true)}
           >
             <Trash2 className="size-3.5" />
             Delete
@@ -445,6 +465,52 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
 
           {canTriage ? <TicketQaTriageSection ticket={ticket} /> : null}
 
+          {canReassign ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Change Assignee</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Saat ini di-assign ke{' '}
+                  <span className="font-medium text-foreground">
+                    {ticket.assignedTo?.fullName ?? '—'}
+                  </span>
+                  . QA atau Developer dapat mengganti assignee tanpa note.
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="reassign-assignee">Assign to</Label>
+                  <NativeSelect
+                    id="reassign-assignee"
+                    value={reassignAssigneeId}
+                    onChange={(event) =>
+                      setReassignAssigneeId(event.target.value)
+                    }
+                  >
+                    <option value="">Select developer...</option>
+                    {(assigneesQuery.data ?? []).map((assignee) => (
+                      <option key={assignee.id} value={assignee.id}>
+                        {assignee.fullName}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </div>
+                <LoadingButton
+                  className="w-full"
+                  disabled={
+                    !reassignAssigneeId ||
+                    reassignAssigneeId === ticket.assignedToId
+                  }
+                  loading={statusMutation.isPending}
+                  loadingText="Updating..."
+                  onClick={() => void handleReassign()}
+                >
+                  Update Assignee
+                </LoadingButton>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {transitions.length > 0 ? (
             <Card>
               <CardHeader>
@@ -516,24 +582,32 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
                   </div>
                 ) : null}
 
-                <div className="space-y-2">
-                  <Label htmlFor="note">Note (wajib)</Label>
-                  <textarea
-                    id="note"
-                    rows={3}
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    placeholder="Jelaskan alasan perubahan status..."
-                    className="flex w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
-                    required
-                  />
-                </div>
+                {requiresNote || selectedStatus ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="note">
+                      {requiresNote ? 'Note (wajib)' : 'Note (opsional)'}
+                    </Label>
+                    <textarea
+                      id="note"
+                      rows={3}
+                      value={note}
+                      onChange={(event) => setNote(event.target.value)}
+                      placeholder={
+                        requiresNote
+                          ? 'Jelaskan alasan QA Review...'
+                          : 'Catatan opsional...'
+                      }
+                      className="flex w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
+                      required={requiresNote}
+                    />
+                  </div>
+                ) : null}
 
                 <LoadingButton
                   className="w-full"
                   disabled={
                     !selectedStatus ||
-                    note.trim().length < 3 ||
+                    (requiresNote && note.trim().length < 3) ||
                     (requiresAssignee && !assigneeId) ||
                     (requiresMention && !mentionUserId)
                   }
@@ -548,6 +622,21 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
           ) : null}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(false);
+        }}
+        title="Delete ticket?"
+        description={`Delete ticket ${ticket.ticketNumber}? This cannot be undone.`}
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={async () => {
+          await deleteMutation.mutateAsync();
+          setConfirmDelete(false);
+        }}
+      />
     </div>
   );
 }

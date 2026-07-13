@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { EmptyState } from '@/components/shared/empty-state';
 import { LoadingState } from '@/components/shared/loading-state';
@@ -34,6 +35,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const commentsQuery = useQuery({
     queryKey: ['ticket-comments', ticketId],
@@ -262,11 +264,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
                           variant="ghost"
                           size="sm"
                           disabled={deleteMutation.isPending}
-                          onClick={() => {
-                            if (window.confirm('Delete this comment?')) {
-                              deleteMutation.mutate(comment.id);
-                            }
-                          }}
+                          onClick={() => setConfirmDeleteId(comment.id)}
                         >
                           <Trash2 className="size-3.5" />
                         </Button>
@@ -320,6 +318,22 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
           </div>
         )}
       </CardContent>
+
+      <ConfirmDialog
+        open={Boolean(confirmDeleteId)}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDeleteId(null);
+        }}
+        title="Delete comment?"
+        description="Delete this comment?"
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={async () => {
+          if (!confirmDeleteId) return;
+          await deleteMutation.mutateAsync(confirmDeleteId);
+          setConfirmDeleteId(null);
+        }}
+      />
     </Card>
   );
 }

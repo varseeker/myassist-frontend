@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Pencil, Plus, Trash2, Download, FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { LoadingState } from '@/components/shared/loading-state';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +72,7 @@ export function ProjectSprintsPanel({ project }: ProjectSprintsPanelProps) {
   });
   const [editingSprintId, setEditingSprintId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<SprintFormState>(EMPTY_FORM);
+  const [confirmDelete, setConfirmDelete] = useState<Sprint | null>(null);
 
   const sprintsQuery = useQuery({
     queryKey: ['project-sprints', project.id],
@@ -344,11 +346,7 @@ export function ProjectSprintsPanel({ project }: ProjectSprintsPanelProps) {
                             variant="outline"
                             size="sm"
                             disabled={deleteMutation.isPending}
-                            onClick={() => {
-                              if (window.confirm(`Delete sprint ${sprint.name}?`)) {
-                                deleteMutation.mutate(sprint.id);
-                              }
-                            }}
+                            onClick={() => setConfirmDelete(sprint)}
                           >
                             <Trash2 className="size-3.5" />
                           </Button>
@@ -362,6 +360,24 @@ export function ProjectSprintsPanel({ project }: ProjectSprintsPanelProps) {
           </div>
         )}
       </CardContent>
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+        title="Delete sprint?"
+        description={
+          confirmDelete ? `Delete sprint ${confirmDelete.name}?` : ''
+        }
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={async () => {
+          if (!confirmDelete) return;
+          await deleteMutation.mutateAsync(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
     </Card>
   );
 }

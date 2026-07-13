@@ -9,6 +9,7 @@ export function isProtectedPath(pathname: string): boolean {
 export function isAuthPath(pathname: string): boolean {
   return (
     pathname === AUTH_ROUTES.login ||
+    pathname === AUTH_ROUTES.register ||
     pathname === AUTH_ROUTES.forgotPassword ||
     pathname === AUTH_ROUTES.resetPassword
   );

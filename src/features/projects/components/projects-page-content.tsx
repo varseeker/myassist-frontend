@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FolderKanban, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { EmptyState } from '@/components/shared/empty-state';
 import { LoadingButton } from '@/components/shared/loading-button';
 import { LoadingState } from '@/components/shared/loading-state';
@@ -41,6 +42,7 @@ export function ProjectsPageContent() {
     code: '',
     description: '',
   });
+  const [confirmDelete, setConfirmDelete] = useState<Project | null>(null);
 
   const projectsQuery = useQuery({
     queryKey: ['projects', search],
@@ -258,15 +260,7 @@ export function ProjectsPageContent() {
                         variant="outline"
                         size="sm"
                         disabled={deleteProjectMutation.isPending}
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              `Delete project ${selectedProject.name}?`,
-                            )
-                          ) {
-                            deleteProjectMutation.mutate(selectedProject.id);
-                          }
-                        }}
+                        onClick={() => setConfirmDelete(selectedProject)}
                       >
                         <Trash2 className="size-3.5" />
                         Delete
@@ -293,5 +287,24 @@ export function ProjectsPageContent() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+        title="Delete project?"
+        description={
+          confirmDelete ? `Delete project ${confirmDelete.name}?` : ''
+        }
+        confirmLabel="Delete"
+        loading={deleteProjectMutation.isPending}
+        onConfirm={async () => {
+          if (!confirmDelete) return;
+          await deleteProjectMutation.mutateAsync(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
+    </div>
   );
 }

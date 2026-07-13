@@ -8,6 +8,9 @@ import {
   MessageCircle,
   PanelLeftClose,
   Ticket,
+  Trash2,
+  UserCircle,
+  UserPlus,
   Users,
   X,
 } from 'lucide-react';
@@ -51,10 +54,22 @@ const baseNavItems: NavItem[] = [
     roles: ['ADMIN', 'QA', 'DEVELOPER', 'USER'],
   },
   {
+    href: '/ticket-management',
+    label: 'Ticket Mgmt',
+    icon: Trash2,
+    roles: ['ADMIN'],
+  },
+  {
     href: '/projects',
     label: 'Projects',
     icon: FolderKanban,
     roles: ['ADMIN'],
+  },
+  {
+    href: '/project-members',
+    label: 'Members',
+    icon: UserPlus,
+    roles: ['ADMIN', 'QA'],
   },
   {
     href: '/users',
@@ -72,6 +87,12 @@ const baseNavItems: NavItem[] = [
     href: '/notifications',
     label: 'Notifications',
     icon: Bell,
+    roles: ['ADMIN', 'QA', 'DEVELOPER', 'USER'],
+  },
+  {
+    href: '/profile',
+    label: 'Profile',
+    icon: UserCircle,
     roles: ['ADMIN', 'QA', 'DEVELOPER', 'USER'],
   },
 ];

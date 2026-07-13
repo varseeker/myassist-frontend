@@ -43,6 +43,8 @@ export interface User {
   telegramChatId?: string | null;
   telegramEnabled?: boolean;
   telegramLinkToken?: string | null;
+  telegramDeepLink?: string | null;
+  telegramLinked?: boolean;
   role: UserRole;
   roleId: string;
   isActive: boolean;
@@ -128,6 +130,7 @@ export interface Ticket {
   project?: TicketProjectSummary;
   sprint?: TicketSprintSummary | null;
   availableTransitions?: TicketStatus[];
+  canReassign?: boolean;
 }
 
 export interface TicketProjectSummary {

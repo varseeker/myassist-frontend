@@ -19,6 +19,7 @@ interface AuthState {
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
   setSession: (accessToken: string, user: User) => void;
+  setUser: (user: User) => void;
   clearSession: () => void;
 }
 
@@ -32,6 +33,10 @@ export const useAuthStore = create<AuthState>()(
 
       setSession: (accessToken, user) => {
         set({ accessToken, user });
+      },
+
+      setUser: (user) => {
+        set({ user });
       },
 
       clearSession: () => {

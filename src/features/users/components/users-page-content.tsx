@@ -2,9 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Plus, SearchX, Trash2, Users } from 'lucide-react';
+import { Pencil, Plus, SearchX, Trash2, Upload, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { DataTable } from '@/components/shared/data-table';
 import { ErrorState } from '@/components/shared/error-state';
 import { LoadingState } from '@/components/shared/loading-state';
@@ -13,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { RoleBadge } from '@/features/users/components/role-badge';
+import { BulkImportUsersDialog } from '@/features/users/components/bulk-import-users-dialog';
 import { UserFormDialog } from '@/features/users/components/user-form-dialog';
 import {
   createUserRequest,
@@ -36,6 +38,8 @@ export function UsersPageContent() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
 
   const usersQuery = useQuery({
     queryKey: ['users', page, search, roleFilter],
@@ -174,15 +178,7 @@ export function UsersPageContent() {
               variant="outline"
               size="sm"
               disabled={deleteMutation.isPending}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    `Delete user ${row.original.fullName}? This cannot be undone.`,
-                  )
-                ) {
-                  deleteMutation.mutate(row.original.id);
-                }
-              }}
+              onClick={() => setConfirmDelete(row.original)}
             >
               <Trash2 className="size-3.5" />
               Delete
@@ -231,16 +227,22 @@ export function UsersPageContent() {
               Manage user accounts, project assignments, and role access.
             </p>
           </div>
-          <Button
-            onClick={() => {
-              setDialogMode('create');
-              setSelectedUser(null);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="size-4" />
-            Add User
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setBulkImportOpen(true)}>
+              <Upload className="size-4" />
+              Bulk Import
+            </Button>
+            <Button
+              onClick={() => {
+                setDialogMode('create');
+                setSelectedUser(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="size-4" />
+              Add User
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -371,6 +373,34 @@ export function UsersPageContent() {
           messagingQuery.data?.telegram.deepLinkPrefix ?? null
         }
         onSubmit={handleFormSubmit}
+      />
+
+      <BulkImportUsersDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        onImported={() => {
+          void queryClient.invalidateQueries({ queryKey: ['users'] });
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+        title="Delete user?"
+        description={
+          confirmDelete
+            ? `Delete user ${confirmDelete.fullName}? This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={async () => {
+          if (!confirmDelete) return;
+          await deleteMutation.mutateAsync(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
       />
     </>
   );

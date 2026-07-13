@@ -115,6 +115,15 @@ export default function LoginPage() {
             Forgot password?
           </Link>
         </div>
+
+        <div className="mt-2 text-center text-sm">
+          <Link
+            href="/register"
+            className="text-primary underline-offset-4 hover:underline"
+          >
+            Create a user account
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
