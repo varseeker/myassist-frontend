@@ -62,7 +62,7 @@ const FEATURES = [
     icon: MessageSquare,
     title: 'Team Collaboration',
     description:
-      'Discuss tickets with comments and @mentions. Attach files and receive real-time notifications on every update.',
+      'Discuss tickets with comments and @username mentions. Attach files and receive real-time notifications on every update.',
   },
   {
     icon: Bell,

@@ -93,6 +93,7 @@ export interface Role {
 export interface TicketUserSummary {
   id: string;
   fullName: string;
+  username?: string;
   email: string | null;
   role: UserRole;
 }
@@ -163,6 +164,7 @@ export interface TicketComment {
 export interface MentionableUser {
   id: string;
   fullName: string;
+  username: string;
   email: string | null;
 }
 

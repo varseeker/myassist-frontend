@@ -111,7 +111,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
 
   const insertMention = (mentionUser: MentionableUser) => {
     const textarea = textareaRef.current;
-    if (!textarea || !mentionUser.email) {
+    if (!textarea || !mentionUser.username) {
       return;
     }
 
@@ -124,7 +124,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
       return;
     }
 
-    const nextContent = `${content.slice(0, atIndex)}@${mentionUser.email} ${afterCursor}`;
+    const nextContent = `${content.slice(0, atIndex)}@${mentionUser.username} ${afterCursor}`;
     setContent(nextContent);
     setMentionQuery(null);
     textarea.focus();
@@ -177,7 +177,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
                   ),
                 )
               }
-              placeholder="Write a comment... Use @email to mention someone"
+              placeholder="Write a comment... Use @username to mention someone"
               className={cn(
                 'flex w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm',
                 'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -185,10 +185,10 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
             />
 
             {mentionQuery !== null &&
-            (mentionableQuery.data?.filter((u) => u.email).length ?? 0) > 0 ? (
+            (mentionableQuery.data?.filter((u) => u.username).length ?? 0) > 0 ? (
               <div className="absolute z-10 mt-1 w-full rounded-lg border bg-popover p-1 shadow-md">
                 {mentionableQuery.data
-                  ?.filter((mentionUser) => mentionUser.email)
+                  ?.filter((mentionUser) => mentionUser.username)
                   .map((mentionUser) => (
                   <button
                     key={mentionUser.id}
@@ -198,7 +198,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
                   >
                     <span className="font-medium">{mentionUser.fullName}</span>
                     <span className="text-xs text-muted-foreground">
-                      @{mentionUser.email}
+                      @{mentionUser.username}
                     </span>
                   </button>
                 ))}
@@ -224,7 +224,7 @@ export function TicketCommentsSection({ ticketId }: TicketCommentsSectionProps) 
             compact
             icon={MessageSquare}
             title="No comments yet"
-            description="Start the discussion. Use @email to mention teammates and keep everyone in the loop."
+            description="Start the discussion. Use @username to mention teammates and keep everyone in the loop."
           />
         ) : (
           <div className="space-y-4">
