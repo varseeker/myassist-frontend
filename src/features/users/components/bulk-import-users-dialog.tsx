@@ -90,7 +90,8 @@ export function BulkImportUsersDialog({
           <DialogDescription>
             Upload CSV atau Excel dengan kolom:{' '}
             <code>username, role, project</code>. Project divalidasi by code
-            atau name. Password sementara: <code>ChangeMe123!</code>
+            atau name. Password default:{' '}
+            <code>{'{username}1234'}</code> (contoh: johndoe → johndoe1234)
           </DialogDescription>
         </DialogHeader>
 
