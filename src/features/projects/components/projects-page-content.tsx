@@ -286,7 +286,6 @@ export function ProjectsPageContent() {
             )}
           </div>
         )}
-      </div>
 
       <ConfirmDialog
         open={Boolean(confirmDelete)}
