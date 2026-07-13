@@ -38,6 +38,20 @@ export async function markAllNotificationsReadRequest() {
   return data.data;
 }
 
+export async function deleteNotificationRequest(id: string) {
+  const { data } = await apiClient.delete<ApiResponse<{ message: string }>>(
+    `/notifications/${id}`,
+  );
+  return data.data;
+}
+
+export async function deleteAllNotificationsRequest() {
+  const { data } = await apiClient.delete<
+    ApiResponse<{ message: string; deletedCount: number }>
+  >('/notifications');
+  return data.data;
+}
+
 export function getNotificationHref(notification: Notification): string | null {
   const ticketId = notification.data?.ticketId;
 
