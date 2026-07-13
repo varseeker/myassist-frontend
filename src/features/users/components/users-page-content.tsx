@@ -57,7 +57,6 @@ export function UsersPageContent() {
   const messagingQuery = useQuery({
     queryKey: ['messaging-status'],
     queryFn: getMessagingStatusRequest,
-    staleTime: 60_000,
   });
 
   const createMutation = useMutation({

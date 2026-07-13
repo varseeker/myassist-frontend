@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { APP_NAME } from '@/lib/constants';
 import { QueryProvider } from '@/providers/query-provider';
+import { RouteRefreshProvider } from '@/providers/route-refresh-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 import './globals.css';
 
@@ -34,8 +35,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            {children}
-            <Toaster richColors position="top-right" />
+            <RouteRefreshProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </RouteRefreshProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>
