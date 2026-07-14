@@ -427,6 +427,17 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
                       transitionLabel = assigneeName
                         ? `${fromLabel} (${actorName}) → ${toLabel} (${assigneeName})`
                         : `${fromLabel} (${actorName}) → ${toLabel}`;
+                    } else if (
+                      history.fromStatus === 'USER_INPUT' &&
+                      history.toStatus === 'QA_REVIEW'
+                    ) {
+                      const inputUserName =
+                        (typeof history.metadata?.inputUserName === 'string'
+                          ? history.metadata.inputUserName
+                          : null) ||
+                        ticket.createdBy?.fullName ||
+                        'User';
+                      transitionLabel = `${fromLabel} (${inputUserName}) → ${toLabel} (${actorName})`;
                     } else {
                       transitionLabel = `${fromLabel} (${actorName}) → ${toLabel}`;
                     }
