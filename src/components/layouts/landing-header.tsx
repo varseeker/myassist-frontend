@@ -40,6 +40,15 @@ export function LandingHeader() {
           >
             Features
           </SmoothScrollLink>
+          <SmoothScrollLink
+            href="#clients"
+            className={cn(
+              buttonVariants({ variant: 'ghost', size: 'sm' }),
+              'hidden sm:inline-flex',
+            )}
+          >
+            Clients
+          </SmoothScrollLink>
           <ThemeToggle />
           <Link
             href={isAuthenticated ? AUTH_ROUTES.dashboard : AUTH_ROUTES.login}

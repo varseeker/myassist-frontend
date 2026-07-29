@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  Building2,
   FolderKanban,
   LayoutDashboard,
   Menu,
@@ -76,6 +77,12 @@ const baseNavItems: NavItem[] = [
     href: '/users',
     label: 'Users',
     icon: Users,
+    roles: ['ADMIN'],
+  },
+  {
+    href: '/clients',
+    label: 'Clients',
+    icon: Building2,
     roles: ['ADMIN'],
   },
   {

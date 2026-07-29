@@ -95,3 +95,14 @@ export async function updateProfileRequest(payload: UpdateProfilePayload) {
   );
   return data.data;
 }
+
+export async function changePasswordRequest(payload: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
+    '/auth/change-password',
+    payload,
+  );
+  return data.data;
+}

@@ -17,6 +17,7 @@ import { LandingHeader } from '@/components/layouts/landing-header';
 import { LandingHero } from '@/components/layouts/landing-hero';
 import { ScrollToTop } from '@/components/layouts/scroll-to-top';
 import { ScrollReveal } from '@/components/shared/scroll-reveal';
+import { LandingClientsSection } from '@/features/clients/components/landing-clients-section';
 import { buttonVariants } from '@/components/ui/button';
 import {
   Card,
@@ -290,6 +291,8 @@ export function LandingPage() {
             </div>
           </section>
         </div>
+
+        <LandingClientsSection />
 
         {/* CTA */}
         <section className="mx-auto max-w-6xl px-6 py-16 sm:py-20">

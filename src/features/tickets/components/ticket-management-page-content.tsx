@@ -22,6 +22,7 @@ import {
 } from '@/features/tickets/api';
 import {
   TICKET_PRIORITIES,
+  TICKET_STATUS_LABELS,
   TICKET_STATUSES,
   TICKET_TYPE_LABELS,
   TICKET_TYPES,
@@ -261,7 +262,7 @@ export function TicketManagementPageContent() {
           <option value="ALL">All statuses</option>
           {TICKET_STATUSES.map((status) => (
             <option key={status} value={status}>
-              {status.replaceAll('_', ' ')}
+              {TICKET_STATUS_LABELS[status]}
             </option>
           ))}
         </NativeSelect>

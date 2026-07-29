@@ -49,6 +49,21 @@ export const TICKET_STATUS_GROUP_LABELS: Record<TicketStatusGroupKey, string> = 
   closed: 'Closed',
 };
 
+export const TICKET_STATUS_LABELS: Record<(typeof TICKET_STATUSES)[number], string> =
+  {
+    OPEN: 'Open',
+    USER_INPUT: 'User Input',
+    QA_REVIEW: 'QA Review',
+    ASSIGNED: 'Assigned',
+    IN_PROGRESS: 'In Progress',
+    WAITING_INFORMATION: 'Waiting Information',
+    DONE: 'Done',
+    RESOLVED: 'Resolved',
+    REOPENED: 'Reopened',
+    CLOSED: 'Closed',
+    REJECTED: 'Rejected',
+  };
+
 export const TICKET_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
 
 export const TICKET_TYPES = [

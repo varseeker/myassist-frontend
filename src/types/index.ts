@@ -32,6 +32,19 @@ export interface PaginatedResponse<T> {
   meta: PaginatedMeta;
 }
 
+export interface Client {
+  id: string;
+  name: string;
+  companyName?: string | null;
+  description: string;
+  logoUrl?: string | null;
+  websiteUrl?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   username: string;

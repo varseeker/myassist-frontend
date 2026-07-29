@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, ExternalLink, Unlink } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -14,16 +15,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  changePasswordRequest,
+  changePasswordSchema,
   getProfileRequest,
   updateProfileRequest,
   updateProfileSchema,
   useAuthStore,
+  type ChangePasswordFormValues,
   type UpdateProfileFormValues,
 } from '@/features/auth';
+import { AUTH_ROUTES } from '@/lib/auth.constants';
 import { cn } from '@/lib/utils';
 
 export function ProfilePageContent() {
+  const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
+  const logout = useAuthStore((state) => state.logout);
 
   const profileQuery = useQuery({
     queryKey: ['my-profile'],
@@ -40,6 +47,15 @@ export function ProfilePageContent() {
       whatsappEnabled: true,
       telegramChatId: '',
       telegramEnabled: true,
+    },
+  });
+
+  const passwordForm = useForm<ChangePasswordFormValues>({
+    resolver: zodResolver(changePasswordSchema as never),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
     },
   });
 
@@ -165,6 +181,90 @@ export function ProfilePageContent() {
               loadingText="Saving..."
             >
               Save profile
+            </LoadingButton>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Change password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="space-y-4"
+            onSubmit={passwordForm.handleSubmit(async (values) => {
+              try {
+                const result = await changePasswordRequest({
+                  currentPassword: values.currentPassword,
+                  newPassword: values.newPassword,
+                });
+                toast.success(result.message);
+                passwordForm.reset();
+                await logout();
+                router.replace(
+                  `${AUTH_ROUTES.login}?sessionExpired=1`,
+                );
+              } catch (error) {
+                toast.error(
+                  error instanceof Error
+                    ? error.message
+                    : 'Failed to change password',
+                );
+              }
+            })}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                {...passwordForm.register('currentPassword')}
+              />
+              {passwordForm.formState.errors.currentPassword ? (
+                <p className="text-sm text-destructive">
+                  {passwordForm.formState.errors.currentPassword.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                autoComplete="new-password"
+                {...passwordForm.register('newPassword')}
+              />
+              {passwordForm.formState.errors.newPassword ? (
+                <p className="text-sm text-destructive">
+                  {passwordForm.formState.errors.newPassword.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm new password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                {...passwordForm.register('confirmPassword')}
+              />
+              {passwordForm.formState.errors.confirmPassword ? (
+                <p className="text-sm text-destructive">
+                  {passwordForm.formState.errors.confirmPassword.message}
+                </p>
+              ) : null}
+            </div>
+
+            <LoadingButton
+              type="submit"
+              loading={passwordForm.formState.isSubmitting}
+              loadingText="Updating..."
+            >
+              Update password
             </LoadingButton>
           </form>
         </CardContent>

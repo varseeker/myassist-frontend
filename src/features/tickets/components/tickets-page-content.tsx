@@ -22,6 +22,7 @@ import {
 } from '@/features/projects/api';
 import {
   createTicketRequest,
+  getTicketFilterOptionsRequest,
   getTicketReportersRequest,
   getTicketsRequest,
   uploadTicketAttachmentRequest,
@@ -32,6 +33,7 @@ import {
   TICKET_PRIORITIES,
   TICKET_STATUS_GROUP_KEYS,
   TICKET_STATUS_GROUP_LABELS,
+  TICKET_STATUS_LABELS,
   TICKET_STATUSES,
   TICKET_TYPE_LABELS,
   TICKET_TYPES,
@@ -89,6 +91,7 @@ export function TicketsPageContent() {
     return isTicketType(type) ? type : 'ALL';
   });
   const [createdByFilter, setCreatedByFilter] = useState<string>('ALL');
+  const [assignedToFilter, setAssignedToFilter] = useState<string>('ALL');
   const [projectFilter, setProjectFilter] = useState<string>('ALL');
   const [sprintFilter, setSprintFilter] = useState<string>('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -96,6 +99,11 @@ export function TicketsPageContent() {
   const reportersQuery = useQuery({
     queryKey: ['ticket-reporters'],
     queryFn: () => getTicketReportersRequest(),
+  });
+
+  const filterOptionsQuery = useQuery({
+    queryKey: ['ticket-filter-options'],
+    queryFn: () => getTicketFilterOptionsRequest(),
   });
 
   const projectsQuery = useQuery({
@@ -124,6 +132,7 @@ export function TicketsPageContent() {
       priorityFilter,
       typeFilter,
       createdByFilter,
+      assignedToFilter,
       projectFilter,
       sprintFilter,
     ],
@@ -141,6 +150,8 @@ export function TicketsPageContent() {
         type: typeFilter === 'ALL' ? undefined : typeFilter,
         createdById:
           createdByFilter === 'ALL' ? undefined : createdByFilter,
+        assignedToId:
+          assignedToFilter === 'ALL' ? undefined : assignedToFilter,
         projectId: projectFilter === 'ALL' ? undefined : projectFilter,
         sprintId: sprintFilter === 'ALL' ? undefined : sprintFilter,
         sortBy: 'createdAt',
@@ -166,8 +177,16 @@ export function TicketsPageContent() {
     priorityFilter !== 'ALL' ||
     typeFilter !== 'ALL' ||
     createdByFilter !== 'ALL' ||
+    assignedToFilter !== 'ALL' ||
     projectFilter !== 'ALL' ||
     sprintFilter !== 'ALL';
+
+  const availableStatuses =
+    filterOptionsQuery.data?.statuses &&
+    filterOptionsQuery.data.statuses.length > 0
+      ? filterOptionsQuery.data.statuses
+      : [...TICKET_STATUSES];
+  const availableAssignees = filterOptionsQuery.data?.assignees ?? [];
 
   const columns = useMemo<ColumnDef<Ticket>[]>(
     () => [
@@ -373,13 +392,28 @@ export function TicketsPageContent() {
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Exact status">
-              {TICKET_STATUSES.map((status) => (
+            <optgroup label="Status">
+              {availableStatuses.map((status) => (
                 <option key={status} value={status}>
-                  {status.replaceAll('_', ' ')}
+                  {TICKET_STATUS_LABELS[status] ?? status.replaceAll('_', ' ')}
                 </option>
               ))}
             </optgroup>
+          </NativeSelect>
+          <NativeSelect
+            containerClassName="sm:w-auto"
+            value={assignedToFilter}
+            onChange={(event) => {
+              setAssignedToFilter(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="ALL">All assignees</option>
+            {availableAssignees.map((assignee) => (
+              <option key={assignee.id} value={assignee.id}>
+                {assignee.fullName}
+              </option>
+            ))}
           </NativeSelect>
           <NativeSelect
             containerClassName="sm:w-auto"
@@ -454,6 +488,7 @@ export function TicketsPageContent() {
                           setPriorityFilter('ALL');
                           setTypeFilter('ALL');
                           setCreatedByFilter('ALL');
+                          setAssignedToFilter('ALL');
                           setProjectFilter('ALL');
                           setSprintFilter('ALL');
                           setPage(1);

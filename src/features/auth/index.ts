@@ -1,4 +1,5 @@
 export {
+  changePasswordRequest,
   forgotPasswordRequest,
   getProfileRequest,
   loginRequest,
@@ -14,6 +15,7 @@ export type {
   UpdateProfilePayload,
 } from './api';
 export {
+  changePasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   registerSchema,
@@ -21,6 +23,7 @@ export {
   updateProfileSchema,
 } from './schemas';
 export type {
+  ChangePasswordFormValues,
   ForgotPasswordFormValues,
   LoginFormValues,
   RegisterFormValues,
