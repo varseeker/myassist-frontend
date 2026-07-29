@@ -19,11 +19,21 @@ export async function loginRequest(username: string, password: string) {
     username,
     password,
   });
+
+  if (!data?.data?.accessToken || !data?.data?.user) {
+    throw new Error('Login response was incomplete. Please try again.');
+  }
+
   return data.data;
 }
 
 export async function refreshTokenRequest() {
   const { data } = await apiClient.post<ApiResponse<AuthTokens>>('/auth/refresh');
+
+  if (!data?.data?.accessToken || !data?.data?.user) {
+    throw new Error('Session refresh failed. Please sign in again.');
+  }
+
   return data.data;
 }
 

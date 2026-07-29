@@ -23,7 +23,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const login = useAuthStore((state) => state.login);
-  const isLoading = useAuthStore((state) => state.isLoading);
+  const isLoggingIn = useAuthStore((state) => state.isLoggingIn);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema as never),
@@ -100,8 +100,9 @@ export default function LoginPage() {
           <LoadingButton
             type="submit"
             className="w-full"
-            loading={isLoading}
+            loading={isLoggingIn}
             loadingText="Signing in..."
+            disabled={isLoggingIn}
           >
             Sign in
           </LoadingButton>

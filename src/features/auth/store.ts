@@ -14,7 +14,10 @@ interface AuthState {
   accessToken: string | null;
   user: User | null;
   isHydrated: boolean;
-  isLoading: boolean;
+  /** Session restore in progress (must not block login button). */
+  isHydrating: boolean;
+  /** Explicit login submit in progress. */
+  isLoggingIn: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
@@ -23,13 +26,16 @@ interface AuthState {
   clearSession: () => void;
 }
 
+let hydratePromise: Promise<void> | null = null;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       accessToken: null,
       user: null,
       isHydrated: false,
-      isLoading: false,
+      isHydrating: false,
+      isLoggingIn: false,
 
       setSession: (accessToken, user) => {
         set({ accessToken, user });
@@ -44,15 +50,17 @@ export const useAuthStore = create<AuthState>()(
       },
 
       login: async (username, password) => {
-        set({ isLoading: true });
+        set({ isLoggingIn: true });
         try {
           const result = await loginRequest(username, password);
           set({
             accessToken: result.accessToken,
             user: result.user,
+            isHydrated: true,
+            isHydrating: false,
           });
         } finally {
-          set({ isLoading: false });
+          set({ isLoggingIn: false });
         }
       },
 
@@ -71,25 +79,67 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        set({ isLoading: true });
-
-        try {
-          if (get().accessToken) {
-            const user = await getProfileRequest();
-            set({ user });
-            return;
-          }
-
-          const result = await refreshTokenRequest();
-          set({
-            accessToken: result.accessToken,
-            user: result.user,
-          });
-        } catch {
-          get().clearSession();
-        } finally {
-          set({ isHydrated: true, isLoading: false });
+        if (hydratePromise) {
+          return hydratePromise;
         }
+
+        hydratePromise = (async () => {
+          set({ isHydrating: true });
+
+          try {
+            // Wait for persisted localStorage token before deciding refresh vs profile.
+            if (
+              typeof window !== 'undefined' &&
+              !useAuthStore.persist.hasHydrated()
+            ) {
+              await new Promise<void>((resolve) => {
+                const unsub = useAuthStore.persist.onFinishHydration(() => {
+                  unsub();
+                  resolve();
+                });
+                // Safety: don't hang forever if persist never fires.
+                window.setTimeout(() => {
+                  unsub();
+                  resolve();
+                }, 1_500);
+              });
+            }
+
+            if (get().isHydrated) {
+              return;
+            }
+
+            if (get().accessToken) {
+              try {
+                const user = await getProfileRequest();
+                set({ user, isHydrated: true });
+                return;
+              } catch {
+                // Access token invalid — try refresh cookie once.
+              }
+            }
+
+            try {
+              const result = await refreshTokenRequest();
+              set({
+                accessToken: result.accessToken,
+                user: result.user,
+                isHydrated: true,
+              });
+            } catch {
+              get().clearSession();
+              set({ isHydrated: true });
+            }
+          } catch {
+            get().clearSession();
+            set({ isHydrated: true });
+          } finally {
+            set({ isHydrating: false });
+            hydratePromise = null;
+          }
+        })();
+
+        return hydratePromise;
       },
     }),
     {
