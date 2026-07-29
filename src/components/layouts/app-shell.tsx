@@ -2,9 +2,10 @@
 
 import {
   Bell,
-  Building2,
+  ChevronDown,
   FolderKanban,
   LayoutDashboard,
+  LayoutTemplate,
   Menu,
   MessageCircle,
   PanelLeftClose,
@@ -35,11 +36,17 @@ interface AppShellProps {
   className?: string;
 }
 
+type NavChild = {
+  href: string;
+  label: string;
+};
+
 type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
   roles: UserRole[];
+  children?: NavChild[];
 };
 
 const baseNavItems: NavItem[] = [
@@ -80,10 +87,20 @@ const baseNavItems: NavItem[] = [
     roles: ['ADMIN'],
   },
   {
-    href: '/clients',
-    label: 'Clients',
-    icon: Building2,
+    href: '/cms',
+    label: 'CMS',
+    icon: LayoutTemplate,
     roles: ['ADMIN'],
+    children: [
+      { href: '/cms', label: 'Overview' },
+      { href: '/cms/HERO', label: 'Hero' },
+      { href: '/cms/HIGHLIGHTS', label: 'Highlights' },
+      { href: '/cms/FEATURES', label: 'Features' },
+      { href: '/cms/PROJECTS', label: 'Projects' },
+      { href: '/cms/WORKFLOW', label: 'Workflow' },
+      { href: '/cms/CLIENTS', label: 'Clients' },
+      { href: '/cms/CTA', label: 'Call to action' },
+    ],
   },
   {
     href: '/messaging',
@@ -106,7 +123,14 @@ const baseNavItems: NavItem[] = [
 ];
 
 function isNavActive(pathname: string, href: string) {
+  if (href === '/cms') {
+    return pathname === '/cms' || pathname.startsWith('/cms/');
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isExactNavActive(pathname: string, href: string) {
+  return pathname === href;
 }
 
 interface SidebarNavProps {
@@ -122,36 +146,145 @@ function SidebarNav({
   collapsed,
   onNavigate,
 }: SidebarNavProps) {
-  return (
-    <nav className="flex flex-1 flex-col gap-1 p-2 md:p-3">
-      {items.map((item) => {
-        const active = isNavActive(pathname, item.href);
-        const Icon = item.icon;
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            title={collapsed ? item.label : undefined}
-            onClick={onNavigate}
-            className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
-              collapsed && 'justify-center px-2',
-              active
-                ? 'bg-accent font-medium text-accent-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-            )}
-          >
-            <Icon className="size-4 shrink-0" aria-hidden />
-            <span
+  useEffect(() => {
+    setOpenGroups((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        if (!item.children?.length) continue;
+        const childActive = item.children.some((child) =>
+          isExactNavActive(pathname, child.href),
+        );
+        if (childActive || isNavActive(pathname, item.href)) {
+          next[item.href] = true;
+        }
+      }
+      return next;
+    });
+  }, [items, pathname]);
+
+  return (
+    <nav
+      data-slot="navbar"
+      className="flex flex-1 flex-col gap-1 overflow-y-auto p-2 font-ui font-medium md:p-3"
+    >      {items.map((item) => {
+        const hasChildren = Boolean(item.children?.length);
+        const active = hasChildren
+          ? pathname === item.href ||
+            pathname.startsWith(`${item.href}/`) ||
+            item.children?.some((child) => pathname === child.href)
+          : isNavActive(pathname, item.href);
+        const Icon = item.icon;
+        const expanded = openGroups[item.href] ?? active;
+
+        if (!hasChildren) {
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              title={collapsed ? item.label : undefined}
+              onClick={onNavigate}
               className={cn(
-                'truncate',
-                collapsed ? 'sr-only' : 'block',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                collapsed && 'justify-center px-2',
+                active
+                  ? 'bg-accent font-medium text-accent-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
               )}
             >
-              {item.label}
-            </span>
-          </Link>
+              <Icon className="size-4 shrink-0" aria-hidden />
+              <span
+                className={cn('truncate', collapsed ? 'sr-only' : 'block')}
+              >
+                {item.label}
+              </span>
+            </Link>
+          );
+        }
+
+        return (
+          <div key={item.href} className="space-y-1">
+            <div
+              className={cn(
+                'flex items-center gap-1 rounded-lg',
+                active && !collapsed && 'bg-accent/60',
+              )}
+            >
+              <Link
+                href={item.href}
+                title={collapsed ? item.label : undefined}
+                onClick={onNavigate}
+                className={cn(
+                  'flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                  collapsed && 'justify-center px-2',
+                  active
+                    ? 'font-medium text-accent-foreground'
+                    : 'text-muted-foreground hover:text-accent-foreground',
+                )}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden />
+                <span
+                  className={cn('truncate', collapsed ? 'sr-only' : 'block')}
+                >
+                  {item.label}
+                </span>
+              </Link>
+              {!collapsed ? (
+                <button
+                  type="button"
+                  className="mr-1 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  aria-label={expanded ? 'Collapse CMS menu' : 'Expand CMS menu'}
+                  onClick={() =>
+                    setOpenGroups((prev) => ({
+                      ...prev,
+                      [item.href]: !expanded,
+                    }))
+                  }
+                >
+                  <ChevronDown
+                    className={cn(
+                      'size-4 transition-transform',
+                      expanded && 'rotate-180',
+                    )}
+                  />
+                </button>
+              ) : null}
+            </div>
+
+            {!collapsed && expanded ? (
+              <div className="ml-4 space-y-0.5 border-l border-border/70 pl-2">
+                {item.children?.map((child) => {
+                  const childActive = isExactNavActive(pathname, child.href);
+                  return (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={onNavigate}
+                      className={cn(
+                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                        childActive
+                          ? 'bg-accent font-medium text-accent-foreground'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                      )}
+                    >
+                      {child.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {collapsed ? (
+              <div className="sr-only">
+                {item.children?.map((child) => (
+                  <Link key={child.href} href={child.href}>
+                    {child.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
         );
       })}
     </nav>
@@ -250,7 +383,7 @@ export function AppShell({ children, className }: AppShellProps) {
             <>
               <Link
                 href="/dashboard"
-                className="min-w-0 truncate text-lg font-semibold tracking-tight text-foreground"
+                className="min-w-0 truncate font-heading text-lg font-bold tracking-tight text-foreground"
                 onClick={() => setMobileNavOpen(false)}
               >
                 {APP_NAME}
@@ -304,10 +437,10 @@ export function AppShell({ children, className }: AppShellProps) {
               <Menu className="size-4" />
             </Button>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium sm:text-base">
+              <p className="truncate font-heading text-sm font-bold sm:text-base">
                 {APP_NAME}
               </p>
-              <p className="hidden truncate text-xs text-muted-foreground sm:block">
+              <p className="text-caption hidden truncate sm:block">
                 Service Desk Management
               </p>
             </div>

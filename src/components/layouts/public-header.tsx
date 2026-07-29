@@ -20,17 +20,18 @@ export function PublicHeader({
 }: PublicHeaderProps) {
   return (
     <header
+      data-slot="navbar"
       className={cn(
-        'sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md',
+        'sticky top-0 z-40 border-b border-border/60 bg-background/80 font-ui font-medium backdrop-blur-md',
         className,
       )}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="group transition-colors">
-          <p className="text-xs font-medium tracking-wide text-primary">
+          <p className="text-caption tracking-wide text-primary uppercase">
             Azure Enterprise
           </p>
-          <p className="text-lg font-bold tracking-tight group-hover:text-primary">
+          <p className="font-heading text-lg font-bold tracking-tight group-hover:text-primary">
             {APP_NAME}
           </p>
         </Link>

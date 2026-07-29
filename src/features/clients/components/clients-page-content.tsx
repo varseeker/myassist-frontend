@@ -37,7 +37,14 @@ import {
 } from '@/features/clients/schemas';
 import type { Client } from '@/types';
 
-export function ClientsPageContent() {
+interface ClientsPageContentProps {
+  /** Hide page chrome when nested inside CMS Clients section. */
+  embedded?: boolean;
+}
+
+export function ClientsPageContent({
+  embedded = false,
+}: ClientsPageContentProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
@@ -143,10 +150,25 @@ export function ClientsPageContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Clients</h1>
-          <p className="text-muted-foreground">
-            Maintain the Our Clients section shown on the homepage.
-          </p>
+          {embedded ? (
+            <>
+              <h2 className="text-lg font-semibold tracking-tight">
+                Client cards
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Edit Net Fashion Indonesia, KSU Mitra Saudara, and any other
+                clients shown on the homepage. Toggle Active/Hidden, reorder,
+                and update logos or descriptions.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold tracking-tight">Clients</h1>
+              <p className="text-muted-foreground">
+                Maintain the Our Clients section shown on the homepage.
+              </p>
+            </>
+          )}
         </div>
         <Button
           onClick={() => {
@@ -271,8 +293,9 @@ export function ClientsPageContent() {
               {editing ? 'Edit client' : 'Add client'}
             </DialogTitle>
             <DialogDescription>
-              Changes appear on the homepage Our Clients section when the client
-              is active.
+              {embedded
+                ? 'Changes appear on the homepage when the client is Active and the Clients section is visible.'
+                : 'Changes appear on the homepage Our Clients section when the client is active. Section titles are edited in CMS → Clients.'}
             </DialogDescription>
           </DialogHeader>
 

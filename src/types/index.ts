@@ -45,6 +45,26 @@ export interface Client {
   updatedAt: string;
 }
 
+export type HomepageSectionKey =
+  | 'HERO'
+  | 'HIGHLIGHTS'
+  | 'FEATURES'
+  | 'PROJECTS'
+  | 'WORKFLOW'
+  | 'CLIENTS'
+  | 'CTA';
+
+export interface HomepageSection {
+  id: string;
+  key: HomepageSectionKey;
+  label: string;
+  sortOrder: number;
+  isVisible: boolean;
+  content: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   username: string;

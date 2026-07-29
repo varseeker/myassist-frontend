@@ -5,12 +5,36 @@ import Link from 'next/link';
 import { useIsAuthenticated } from '@/components/layouts/use-is-authenticated';
 import { SmoothScrollLink } from '@/components/shared/smooth-scroll-link';
 import { buttonVariants } from '@/components/ui/button';
+import { asString } from '@/features/homepage/utils';
 import { AUTH_ROUTES } from '@/lib/auth.constants';
 import { APP_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
-export function LandingHero() {
+interface LandingHeroProps {
+  content?: Record<string, unknown>;
+}
+
+export function LandingHero({ content = {} }: LandingHeroProps) {
   const isAuthenticated = useIsAuthenticated();
+  const badge = asString(content.badge, 'Internal Service Desk Platform');
+  const headline = asString(
+    content.headline,
+    'Manage support requests with clarity and speed',
+  );
+  const body = asString(
+    content.body,
+    `${APP_NAME} is Azure Enterprise's modern service desk — organize support by project and sprint, assign the right teams, and track every ticket from submission to resolution.`,
+  );
+  const primaryCtaLabel = asString(content.primaryCtaLabel, 'Get started');
+  const primaryCtaLabelAuthed = asString(
+    content.primaryCtaLabelAuthed,
+    'Go to dashboard',
+  );
+  const secondaryCtaLabel = asString(
+    content.secondaryCtaLabel,
+    'See how it works',
+  );
+  const secondaryCtaHref = asString(content.secondaryCtaHref, '#workflow');
 
   return (
     <section className="relative overflow-hidden">
@@ -23,23 +47,19 @@ export function LandingHero() {
           style={{ '--landing-hero-delay': '0ms' } as React.CSSProperties}
         >
           <Headphones className="size-3.5 text-primary" />
-          Internal Service Desk Platform
+          {badge}
         </div>
         <h1
-          className="landing-hero-item mt-6 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+          className="landing-hero-item mt-6 max-w-3xl font-heading text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
           style={{ '--landing-hero-delay': '80ms' } as React.CSSProperties}
         >
-          Manage support requests with clarity and speed
+          {headline}
         </h1>
         <p
-          className="landing-hero-item mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground"
+          className="landing-hero-item mt-5 max-w-2xl font-sans text-lg leading-relaxed font-normal text-muted-foreground"
           style={{ '--landing-hero-delay': '160ms' } as React.CSSProperties}
         >
-          {APP_NAME} is Azure Enterprise&apos;s modern service desk — organize
-          support by <strong className="font-medium text-foreground">project</strong>{' '}
-          and <strong className="font-medium text-foreground">sprint</strong>,
-          assign the right teams, and track every ticket from submission to
-          resolution.
+          {body}
         </p>
         <div
           className="landing-hero-item mt-8 flex flex-wrap gap-3"
@@ -49,14 +69,14 @@ export function LandingHero() {
             href={isAuthenticated ? AUTH_ROUTES.dashboard : AUTH_ROUTES.login}
             className={cn(buttonVariants({ size: 'lg' }), 'group')}
           >
-            {isAuthenticated ? 'Go to dashboard' : 'Get started'}
+            {isAuthenticated ? primaryCtaLabelAuthed : primaryCtaLabel}
             <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </Link>
           <SmoothScrollLink
-            href="#workflow"
+            href={secondaryCtaHref}
             className={buttonVariants({ variant: 'outline', size: 'lg' })}
           >
-            See how it works
+            {secondaryCtaLabel}
           </SmoothScrollLink>
         </div>
       </div>

@@ -36,15 +36,17 @@ export function AppFooter({ className, variant = 'compact' }: AppFooterProps) {
         <div className="mx-auto max-w-6xl px-6 py-10">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-3 sm:col-span-2 lg:col-span-1">
-              <p className="text-lg font-semibold tracking-tight">{APP_NAME}</p>
-              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+              <p className="font-heading text-lg font-bold tracking-tight">
+                {APP_NAME}
+              </p>
+              <p className="max-w-xs font-sans text-sm leading-relaxed font-normal text-muted-foreground">
                 Internal service desk platform by Azure Enterprise — organize work
                 by project and sprint, with full ticket traceability.
               </p>
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm font-medium">Explore</p>
+              <p className="font-ui text-sm font-medium">Explore</p>
               <ul className="space-y-2">
                 {footerLinks.map((link) => (
                   <li key={link.href}>
@@ -69,8 +71,8 @@ export function AppFooter({ className, variant = 'compact' }: AppFooterProps) {
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm font-medium">Platform</p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <p className="font-ui text-sm font-medium">Platform</p>
+              <ul className="space-y-2 font-sans text-sm font-normal text-muted-foreground">
                 <li>Project &amp; sprint management</li>
                 <li>Ticket workflow &amp; tracking</li>
                 <li>Real-time notifications</li>
@@ -80,10 +82,10 @@ export function AppFooter({ className, variant = 'compact' }: AppFooterProps) {
           </div>
 
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 sm:flex-row">
-            <p className="text-center text-xs tracking-wide text-muted-foreground sm:text-left">
+            <p className="text-caption text-center tracking-wide sm:text-left">
               Copyright &copy; 2026 Azure Enterprise. All rights reserved.
             </p>
-            <p className="text-center text-xs text-muted-foreground sm:text-right">
+            <p className="text-caption text-center sm:text-right">
               Built for internal teams · Secure · Enterprise-ready
             </p>
           </div>

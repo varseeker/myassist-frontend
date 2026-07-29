@@ -1,5 +1,5 @@
-import { AdminClientsPage } from '@/features/clients/components/admin-clients-page';
+import { redirect } from 'next/navigation';
 
 export default function ClientsPage() {
-  return <AdminClientsPage />;
+  redirect('/cms/CLIENTS');
 }
