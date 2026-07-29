@@ -1,5 +1,8 @@
+'use client';
+
 import { Home } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/layouts/theme-toggle';
 import { buttonVariants } from '@/components/ui/button';
 import { APP_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -31,10 +34,16 @@ export function PublicHeader({
             {APP_NAME}
           </p>
         </Link>
-        <Link href={homeHref} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-          <Home className="size-4" />
-          {homeLabel}
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link
+            href={homeHref}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            <Home className="size-4" />
+            {homeLabel}
+          </Link>
+        </div>
       </div>
     </header>
   );

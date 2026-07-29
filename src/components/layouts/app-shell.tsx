@@ -19,6 +19,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AppFooter } from '@/components/layouts/app-footer';
 import { useSidebarStore } from '@/components/layouts/sidebar-store';
+import { ThemeToggle } from '@/components/layouts/theme-toggle';
 import { UserMenu } from '@/components/layouts/user-menu';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { useAuthStore } from '@/features/auth/store';
@@ -306,6 +307,7 @@ export function AppShell({ children, className }: AppShellProps) {
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <ThemeToggle />
             <NotificationBell />
             <UserMenu />
           </div>

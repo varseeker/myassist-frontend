@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useIsAuthenticated } from '@/components/layouts/use-is-authenticated';
+import { ThemeToggle } from '@/components/layouts/theme-toggle';
 import { SmoothScrollLink } from '@/components/shared/smooth-scroll-link';
 import { buttonVariants } from '@/components/ui/button';
 import { AUTH_ROUTES } from '@/lib/auth.constants';
@@ -39,6 +40,7 @@ export function LandingHeader() {
           >
             Features
           </SmoothScrollLink>
+          <ThemeToggle />
           <Link
             href={isAuthenticated ? AUTH_ROUTES.dashboard : AUTH_ROUTES.login}
             className={buttonVariants({ variant: 'ghost', size: 'sm' })}
