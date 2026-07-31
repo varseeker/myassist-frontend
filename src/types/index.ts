@@ -146,6 +146,7 @@ export interface Ticket {
   ticketNumber: string;
   title: string;
   description: string;
+  menuUrl?: string | null;
   type: TicketType;
   status: TicketStatus;
   priority: TicketPriority;

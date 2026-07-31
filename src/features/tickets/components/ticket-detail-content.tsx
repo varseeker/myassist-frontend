@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, History, StickyNote, Trash2 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, History, StickyNote, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -337,6 +337,22 @@ export function TicketDetailContent({ ticketId }: TicketDetailContentProps) {
               <div>
                 <p className="text-muted-foreground">Type</p>
                 <p>{TICKET_TYPE_LABELS[ticket.type]}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">URL Menu</p>
+                {ticket.menuUrl ? (
+                  <a
+                    href={ticket.menuUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex max-w-full items-center gap-1.5 break-all font-medium text-primary hover:underline"
+                  >
+                    <span className="min-w-0">{ticket.menuUrl}</span>
+                    <ExternalLink className="size-3.5 shrink-0" />
+                  </a>
+                ) : (
+                  <p>—</p>
+                )}
               </div>
               <div>
                 <p className="text-muted-foreground">Reporter</p>

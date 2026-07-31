@@ -4,14 +4,33 @@ import {
   TICKET_TYPES,
 } from '@/lib/constants';
 
+const optionalMenuUrlSchema = z
+  .string()
+  .max(500, 'URL Menu must be at most 500 characters')
+  .refine(
+    (value) => {
+      const trimmed = value.trim();
+      if (!trimmed) return true;
+      try {
+        const url = new URL(trimmed);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Enter a valid URL (http:// or https://)' },
+  );
+
 export const userCreateTicketSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(200),
   description: z.string().min(10, 'Description must be at least 10 characters'),
+  menuUrl: optionalMenuUrlSchema.optional().or(z.literal('')),
 });
 
 export const staffCreateTicketSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(200),
   description: z.string().min(10, 'Description must be at least 10 characters'),
+  menuUrl: optionalMenuUrlSchema.optional().or(z.literal('')),
   type: z.enum(TICKET_TYPES),
   priority: z.enum(TICKET_PRIORITIES).default('MEDIUM'),
   projectId: z.string().uuid().optional(),
@@ -35,7 +54,6 @@ export interface CreateTicketSubmitPayload {
 }
 
 export const USER_TICKET_DESCRIPTION_PLACEHOLDER = `Contoh Pengisian :
-Menu : Order Management
 Issue : Terdapat data yang gagal terload ketika di pilih`;
 
 export const MAX_TICKET_IMAGES = 10;

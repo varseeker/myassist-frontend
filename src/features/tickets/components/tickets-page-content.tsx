@@ -264,9 +264,11 @@ export function TicketsPageContent() {
   );
 
   const handleCreate = async ({ values, images }: CreateTicketSubmitPayload) => {
+    const menuUrl = values.menuUrl?.trim();
     const payload: CreateTicketPayload = {
       title: values.title.trim(),
       description: values.description.trim(),
+      ...(menuUrl ? { menuUrl } : {}),
     };
 
     if (user?.role !== 'USER' && 'type' in values) {

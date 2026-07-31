@@ -33,6 +33,7 @@ export interface TicketQueryParams {
 export interface CreateTicketPayload {
   title: string;
   description: string;
+  menuUrl?: string;
   type?: TicketType;
   priority?: TicketPriority;
   projectId?: string;
@@ -42,6 +43,7 @@ export interface CreateTicketPayload {
 export interface UpdateTicketPayload {
   title?: string;
   description?: string;
+  menuUrl?: string | null;
   type?: TicketType;
   priority?: TicketPriority;
   sprintId?: string;

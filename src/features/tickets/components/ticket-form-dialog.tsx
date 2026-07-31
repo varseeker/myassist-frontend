@@ -93,6 +93,7 @@ export function TicketFormDialog({
     defaultValues: {
       title: '',
       description: '',
+      menuUrl: '',
       type: 'BUG_REPORT',
       priority: 'MEDIUM',
       projectId: availableProjects[0]?.id,
@@ -105,6 +106,7 @@ export function TicketFormDialog({
     defaultValues: {
       title: '',
       description: '',
+      menuUrl: '',
     },
   });
 
@@ -114,6 +116,9 @@ export function TicketFormDialog({
   const descriptionRegister = isRegularUser
     ? userForm.register('description')
     : staffForm.register('description');
+  const menuUrlRegister = isRegularUser
+    ? userForm.register('menuUrl')
+    : staffForm.register('menuUrl');
   const formErrors = isRegularUser
     ? userForm.formState.errors
     : staffForm.formState.errors;
@@ -151,6 +156,7 @@ export function TicketFormDialog({
       userForm.reset({
         title: '',
         description: '',
+        menuUrl: '',
       });
       return;
     }
@@ -158,6 +164,7 @@ export function TicketFormDialog({
     staffForm.reset({
       title: '',
       description: '',
+      menuUrl: '',
       type: 'BUG_REPORT',
       priority: 'MEDIUM',
       projectId: defaultProjectId,
@@ -343,6 +350,24 @@ export function TicketFormDialog({
                 {formErrors.title.message}
               </p>
             ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="menuUrl">URL Menu</Label>
+            <Input
+              id="menuUrl"
+              type="url"
+              placeholder="https://example.com/menu"
+              {...menuUrlRegister}
+            />
+            {formErrors.menuUrl ? (
+              <p className="text-xs text-destructive">
+                {formErrors.menuUrl.message}
+              </p>
+            ) : null}
+            <p className="text-caption">
+              Optional. Link to the related menu or page for this ticket.
+            </p>
           </div>
 
           <div className="space-y-2">
